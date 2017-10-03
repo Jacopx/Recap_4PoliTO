@@ -61,6 +61,35 @@ Le fonti su cui mi sono basato sono quelle relative al corso offerto (\textbf{Da
 Non mi assumo nessuna responsabilità in merito ad errori o qualsiasi altra cosa. Fatene buon uso!
 \newpage
 
+\section{Database Management System}
+\subsection{Introduction}
+
+The DataBase Management System \textbf{DBMS} is a software package designed to store and manage databases. The architecture of the system is similar to the one in the figure \ref{fig:arch}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/arch.png}
+  \caption{DBMS Architecture}
+  \label{fig:arch}
+\end{figure}
+Since the DB data part can be really big it can't fit always in the main memory (RAM) and, for this fact, is often stored in the secondary memory, like HDD. For this reason is necessary a system that define the operations to grab and manage the data from the secondary memory.\\
+All the blocks has different behaviours. The \textbf{Optimizer} have multiple roles:
+\begin{itemize}
+  \item Define an appropriate execution strategy for accessing data to answer queries.
+  \item Receives in input the SQL instructions (DML).
+  \item Check the lexical, syntactical and sematical correctness (not all the errors).
+  \item Translate the query in an internal algebra rappresentation.
+  \item Select the "right" strategy for accesing data.
+  \item Guarantees the \textbf{data independence} property in the relation model.
+\end{itemize}
+The \textbf{Access Method Manager} is used for physical access to data and it implements the strategy selected by the optimizer. The \textbf{Buffer Manager} instead manage the page transfert from disk to main memory and vice versa and the main memory portion that is pre-allocated to the DBMS that is shared among many applications. The \textbf{Concurrency Control} coordinate the concurrent access to data (important for write operations) to guarantess the consistency of it. The \textbf{Realiability Manager} guarantees correctness of the database content duing the system crashes, the atomic execution of a transaction and it exploits auxiliary structures (log files) the correct the database in case of failure.\\
+The \textbf{transaction} is an unit of work performed by an application, it's a sequence of one or more SQL RW operation charaterized by \textit{correctness, reliability} and \textit{isolation}. The START of a transaction is typically implicit and coincides with the first SQL instruction. The END instead can be of two differents types, it can be a COMMIT that it means the correct end of a transaction, or with ROLLBACK that it means error during the execution. In this second case the DBMS needs to go back to the state at the beginning of the transaction. The rollback can be of two type suicide, when is required by the transaction, and murder when is required by the system. The transaction have four important properties:
+\begin{itemize}
+  \item \textbf{A}tomicity
+  \item \textbf{C}onsistency
+  \item \textbf{I}solation
+  \item \textbf{D}urability
+\end{itemize}
+Atomicity means that they cannot be divided in smaller units, is not possibile to leave the system in a intermediate state of exec, guarantee by UNDO (undoes all the work perfomed, used for rollback) and REDO (redoes all work performed, used for commit the result in presence of failure). The consistency means that the transaction execution should not violate integrity constraints on a database, in case of it the system will perform solution to correct the violation. The system can be considered Isolated when the execution of a transaction is indipendent of the concurrent execution of other transaction, everything is enforced by the Concurrency Control block. The last properties means that, in presence of failures, the effect of a commited transaction IS NOT LOST, it guarantees the reliability of the DBMS and is enforced by the Reliability Manager block. % 3/9/17 @ 18:15
+
 \bibliographystyle{abbrv}
 \bibliography{simple}
 
