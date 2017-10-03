@@ -90,6 +90,21 @@ The \textbf{transaction} is an unit of work performed by an application, it's a 
 \end{itemize}
 Atomicity means that they cannot be divided in smaller units, is not possibile to leave the system in a intermediate state of exec, guarantee by UNDO (undoes all the work perfomed, used for rollback) and REDO (redoes all work performed, used for commit the result in presence of failure). The consistency means that the transaction execution should not violate integrity constraints on a database, in case of it the system will perform solution to correct the violation. The system can be considered Isolated when the execution of a transaction is indipendent of the concurrent execution of other transaction, everything is enforced by the Concurrency Control block. The last properties means that, in presence of failures, the effect of a commited transaction IS NOT LOST, it guarantees the reliability of the DBMS and is enforced by the Reliability Manager block. % 3/9/17 @ 18:15
 
+\subsection{Buffer Manager}
+This block have a real important behaviour, it manages page transfer from disk to main memory and it's in charge of managing the DBMS buffer. The operation of the pages trasnfert is the bottleneck of every system and this is why this block is really important. increasing the performance of this operation could really improve the speed of the entire system.\\
+The buffer is:
+\begin{itemize}
+  \item A large main memory block.
+  \item Pre-allocated to the DBMS.
+  \item Shared among executing transactions.
+\end{itemize}
+this part is organized in pages where the size depends on the size of the OS I/O block. There are two empirical law often used for hte management strategies:
+\begin{enumerate}
+  \item Data Locality: Data referenced recntly is likely to be referenced again.
+  \item 20-80: The 20\% of data is RW by 80\% of transaction.
+\end{enumerate}
+The buffer manager keeps additional snapshot information on the current content of the buffer, it shot, for every page, the physical location of the page on the secondary memory (file identifier and block number) and two state variables, one that count of the number of trasn using the page in that time (count), and the dirty bit that is set if the page has been modified. %Set No. 2 @ PAG. 8
+
 \bibliographystyle{abbrv}
 \bibliography{simple}
 
