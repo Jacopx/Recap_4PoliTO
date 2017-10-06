@@ -103,7 +103,45 @@ this part is organized in pages where the size depends on the size of the OS I/O
   \item Data Locality: Data referenced recntly is likely to be referenced again.
   \item 20-80: The 20\% of data is RW by 80\% of transaction.
 \end{enumerate}
-The buffer manager keeps additional snapshot information on the current content of the buffer, it shot, for every page, the physical location of the page on the secondary memory (file identifier and block number) and two state variables, one that count of the number of trasn using the page in that time (count), and the dirty bit that is set if the page has been modified. %Set No. 2 @ PAG. 8
+The buffer manager keeps additional snapshot information on the current content of the buffer, it shot, for every page, the physical location of the page on the secondary memory (file identifier and block number) and two state variables, one that count of the number of trasn using the page in that time (count), and the dirty bit that is set if the page has been modified.\\ %Set No. 2 @ PAG. 8
+It provides different access methods to load pages from disk and vice versa:
+\paragraph{Fix Primitive} used by transactions to require access to a disk page, after the page is loaded into the buffer a pointer is returned to the requesting transaction and the Count is incremented by 1. This procedure requires an I/O operation only id the page is not already in the buffer. There are two behaviour:
+\begin{itemize}
+  \item Page already in buffer: Return the pointer to the data.
+  \item Page not in buffer: It search a place for the page.
+  \begin{enumerate}
+    \item Free pages
+    \item Not free pages, Count=0; if the data is dirty it performs a synchronous write on the disk.
+  \end{enumerate}
+\end{itemize}
+\paragraph{Unfix Primitive} it tells the buffer manager that the transaction is no longer using the page and it decrease the Count.
+\paragraph{Set Dirty Primitive} is tells the buffer manager that the page has been modified by the running transaction and it sets the dirty bit to 1.
+\paragraph{Force Primitive} it requires a synchronous transfert of the page to the disk, when this operation is performed the transaction is suspended.
+\paragraph{Flush Primitive} is an autonomous transfert of the pages on the disks, is internal to the buffer manager and is runned when the CPU is not too much loaded. It transfer the page that are not valid (count=0) or not accessed since long time.\\
+The are four writing strategies:
+\begin{itemize}
+  \item \textbf{Steal}: The BM is allowed to select a locked page with Count=0 as victim. It writes on disk the dirty pages belonging to uncommitted trans. It can be undone.
+  \item \textbf{No Steal}: The BM is not allow to steal.
+  \item \textbf{Force}: All the pages are synchronous written on the disk during the commit operation.
+  \item \textbf{No Force}: The pages are written asynchronously with the Flush Primitive.
+\end{itemize}
+The mostly used solution is \textbf{steal/no force} because of its efficency. The no force provides better I/O performance, steal may be mandatory for queries accessing a very large number of pages.
+
+\paragraph{File System} the BM is using services provided by the file system:
+\begin{itemize}
+  \item Create/Delete of a file.
+  \item Open/Close file.
+  \item Read: It provides a direct access to a block in a file and it requires File Identifier, Block number and buffer page where to save data.
+  \item Sequential Read: It provides seq. access to a fixed number of blocks in a file, it requires file identifier, strating block, number of blocks to be readed and the starting page for saving.
+  \item Write and Sequential Write.
+  \item Directory management.
+\end{itemize}
+
+
+
+
+
+
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
