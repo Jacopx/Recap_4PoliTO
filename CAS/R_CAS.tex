@@ -68,6 +68,7 @@ During the years the performance growth was not linear, as you can see in figure
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/cpugrowth.png}
+  \caption{CPUs Growth over years}
   \label{fig:cpugrowth}
 \end{figure}
 The manufacturers have found a lot of physical problem related to the creation of new products, this problem are mainly related to:
@@ -77,6 +78,8 @@ The manufacturers have found a lot of physical problem related to the creation o
   \item Unchanged memory lantecy.
 \end{itemize}
 in fact, since 2004, the major industry have changed the conceptual ways to desing processors, switching from single to multi-core architectures. We can say that, in anytime, this growth is incredible an is due to improvements in technology, microprocessor architecture and software development. Since the multi core introduction the major prefers to investe on multicore system rather than develop faster CPU.\\
+
+\subsection{Designing}
 There are 5 main market areas:
 \begin{itemize}
   \item \textbf{Personal Mobile Device} (PMD): Smarthphone, tablet. They are focused in energy efficency and real-time app.
@@ -100,7 +103,95 @@ There are different Parallel Architectures:
   \item \textbf{Request-level} (RLP): Exploits parallelism among decoupled (not-related) tasks.
 \end{itemize}
 The designing of a new computer involve important analysis to the main pourpose of it, you need to study which attributes are important for the new machine and you need to maximizes performance and matching cost and power constraints. During the last decade the PC design took advantage of architectural and technology improvements, the performance increase is more than a factor of 15 on what would have been obtained by relying solely on technology.\\
-The \textbf{Moore's Law} says that: \textit{THe number of transistors that can be integrated into a single chip doubles every 18/24 months}. Until now the law has worked, as you can see in the figure and, probably, it will work for other time.
+
+The \textbf{Moore's Law} says that: \textit{The number of transistors that can be integrated into a single chip doubles every 18/24 months}. Until now the law has worked, as you can see in the figure \ref{fig:moore} and, probably, it will work for other time.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/moore.png}
+  \caption{Transistors growth on CPUs}
+  \label{fig:moore}
+\end{figure}
+
+\paragraph{Cost} During the evaluation of the IC manufacturing cost it is important not to forget the impact of yeild, the percentage of products that pass the test phase. The production process for every product undergoes an evolution which normally leads to an improvement in yield (learning curve). The cost decrease is due to yield increase. Probably the most important part of the manufacturing cost is related to the validation and testing procedures.\\
+
+\paragraph{Other designing problem} The continuos increase of the system complexity and device integration leads to porblem with power consumption, for the Power and for the Energy (manly for portable devices). Until now the greater power consumption contribution is due to the trasnsistor switching phase, related to the physical formulas the solution applied is trying to reduce the voltage.\\
+Another important factor is the \textbf{Dependability} that is the quality of the system to deliver a correct service, is traditionally very high, but it can be lowered by software or hardware bugs both during the production or in designing phase. During this years the safety-critical areas where the microprocessor have relevant importance are increased, initialy only space, avionics and nuclear, but now we have rail-road, automotive, biomedical, telecom, ecc...\\
+The dependability is often measured using:
+\begin{itemize}
+  \item \textbf{Mean Time To Failure} (MTTF): 1 failure in one billion hours.
+  \item \textbf{Mean Time Between Failures} (MTBF)
+  \item \textbf{Mean Time To Repair} (MTTR)
+\end{itemize}
+This three measures are related by the formula: $MTBF = MTTF + MTTR$
+
+\paragraph{Performance} they be analyzed under multiple point of view, \textit{Time between start and completion of an operation, Total amount of work done in time unit, ecc...}. The UNIX system provide 4 different values:
+\begin{itemize}
+  \item Elapsed time
+  \item CPU Time
+  \begin{itemize}
+    \item User
+    \item System
+  \end{itemize}
+\end{itemize}
+The evaluation of often performed letting work a computer and observing its behavior. Unfortunately, the choice of the application severely affects the performance and is not too easy looking the result in a correct way. The main solution is using benchmarks to compare different system running the same operation and production comparable times of execution. The benchmark sets are normally composed of:
+\begin{itemize}
+  \item Kernels
+  \item Program Fragments
+  \item Applications
+\end{itemize}
+
+There are multiples solution to analyze the performance one of the most common is the \textbf{Amdahl's law} and it based to the comparisons with the older version of the same product. The speedup is calculated by this formula:
+\begin{equation}
+  \begin{gathered}
+    Speedup = \frac{Performance_{enhancement}}{Performance_{NOenhancement}}
+    \label{eq:tsoglie}
+  \end{gathered}
+\end{equation}
+the value depends on two factors:
+\begin{itemize}
+  \item $Fraction_{Enhanced}$: the fraction of the computation time that take advantages of the enhancement.
+  \item $Speedup_{Enhanced}$: the suze of the enhancement on the part it affects.
+\end{itemize}
+A more complete formula is:
+\begin{equation}
+  \begin{gathered}
+    Speedup_{overall} = \frac{1}{(1-Fraction_{Enhanced}) + \frac{Fraction_{Enhanced}}{Speedup_{Enhanced}}}
+    \label{eq:tsoglie}
+  \end{gathered}
+\end{equation}
+an example could be useful:\\
+
+\textit{An enhancement makes one machine 10 times faster for 40\% of the programs the machine runs. Which is the overall speedup?}\\
+Fraction = 0.4, Speedup = 10.
+\begin{equation}
+  \begin{gathered}
+    Speedup_{overall} = \frac{1}{(1-0.4) + \frac{0.4}{10}} = 1.56
+    \label{eq:tsoglie}
+  \end{gathered}
+\end{equation}
+
+Another important designing evaluation is measuring the time required to execute a program, the are severals approaches:
+\begin{itemize}
+  \item Observing the real system: Not easy to be evaluated.
+  \item Simulation: It could be really expensive.
+  \item CPU Equation.
+\end{itemize}
+the latest solution use a provided formula to evaluate the CPU time:
+\begin{equation}
+  \begin{gathered}
+    CPU_{Time} = CLK_{Time}*\sum_{i=1}^n{CPI_{i}*IC_{i}}
+    \label{eq:tsoglie}
+  \end{gathered}
+\end{equation}
+where:
+\begin{itemize}
+  \item \textbf{$CPI_{i}$}: Number of clock cycles required by instruction i (depends on hardware and instr set).
+  \item \textbf{$IC_{i}$}: Number of times instruction i is executed in the program (depends instruction set and compiler).
+  \item \textbf{$CLK_{Time}$}: Inverse of clock frequency (depends technology).
+\end{itemize}
+in the pipelined processor, $CPI_{i}$ may vary for a given instruction, therefore the evaluation becomes much harder.
+% END Part 1 - Introduction
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
