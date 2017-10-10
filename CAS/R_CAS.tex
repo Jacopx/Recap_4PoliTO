@@ -76,8 +76,31 @@ The manufacturers have found a lot of physical problem related to the creation o
   \item Lower instruction-level parallelism.
   \item Unchanged memory lantecy.
 \end{itemize}
-in fact, since 2004, the major industry have changed the conceptual ways to desing processors, switching from single to multi-core architectures. We can say that, in anytime, this growth is incredible an is due to improvements in technology, microprocessor architecture and software development. %Intro @ Pag. 10
-
+in fact, since 2004, the major industry have changed the conceptual ways to desing processors, switching from single to multi-core architectures. We can say that, in anytime, this growth is incredible an is due to improvements in technology, microprocessor architecture and software development. Since the multi core introduction the major prefers to investe on multicore system rather than develop faster CPU.\\
+There are 5 main market areas:
+\begin{itemize}
+  \item \textbf{Personal Mobile Device} (PMD): Smarthphone, tablet. They are focused in energy efficency and real-time app.
+  \item \textbf{Desktop Computing}: From PC to workstation and the main pourpose is optimize the price-performance ratio.
+  \item \textbf{Server}: Larger-scale and more reliable computing services.
+  \item \textbf{Cluster - WAS}:Emphasis on availability, price-performance and power consumption.
+  \item \textbf{Embedded Computers}: Fastest growing portion of PCs market. All special-purpose computer-based application, from cheap to high-end processors.
+\end{itemize}
+There are to \textbf{Classes of Parallelism}:
+\begin{itemize}
+  \item \textbf{Data-Level} (DLP): Many data items that can be operated on at the same.
+  \item \textbf{Task-Level} (TaskLP): Many task of a work can operate independently.
+\end{itemize}
+The first solution allow the processor to split the data operation over multiple cores, you can for example divide an array of n elements over 4 core and, if T is the computational time needed for the entire array, the final time will be T/4 plus a little time for the reunion of the data. It split the one task on different data.\\
+The TLP instead is able to manage multiple task over the same data, this is the common behaviour of the actual system (pipelining techniques).\\
+There are different Parallel Architectures:
+\begin{itemize}
+  \item \textbf{Instruction-level} (ILP): The is modestly use the data-level parallelism.
+  \item \textbf{Vector and GPU}: It exploits DLP.
+  \item \textbf{Thread-level} (TLP): It exploits DLP and TaskLP.
+  \item \textbf{Request-level} (RLP): Exploits parallelism among decoupled (not-related) tasks.
+\end{itemize}
+The designing of a new computer involve important analysis to the main pourpose of it, you need to study which attributes are important for the new machine and you need to maximizes performance and matching cost and power constraints. During the last decade the PC design took advantage of architectural and technology improvements, the performance increase is more than a factor of 15 on what would have been obtained by relying solely on technology.\\
+The \textbf{Moore's Law} says that: \textit{THe number of transistors that can be integrated into a single chip doubles every 18/24 months}. Until now the law has worked, as you can see in the figure and, probably, it will work for other time.
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
