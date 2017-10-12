@@ -135,13 +135,37 @@ The mostly used solution is \textbf{steal/no force} because of its efficency. Th
   \item Sequential Read: It provides seq. access to a fixed number of blocks in a file, it requires file identifier, strating block, number of blocks to be readed and the starting page for saving.
   \item Write and Sequential Write.
   \item Directory management.
+\end{itemize} % END Block 2 - Buffer Manager
+
+\subsection{Physical Access}
+Data may be stored in different format to provide efficient query execution. The \textbf{Access Method Manager} transform the decision taken by the optimizer into sequence of physical access to data. An access method is a software module specialized for single data structure that provide primitives for read and write. The AM can select the appropriate blocks of a file to be loaded in memory and it knows the organization of data into a page.\\
+There are several solution for manage the data in relational system:
+\begin{itemize}
+  \item Physical data storage
+  \begin{itemize}
+    \item Sequential Structure
+    \item Hash Structure
+  \end{itemize}
+  \item Indexing
+  \begin{itemize}
+    \item Tree Structure
+    \item Unclustered Hash Index
+    \item Bitmap Index
+  \end{itemize}
 \end{itemize}
 
-
-
-
-
-
+In the sequential solution the tuples are stored in a given sequential order, in the case of the heap file are sorted in the insertion order, typically append at the end of the file.
+\begin{itemize}
+  \item \textbf{PRO}: No wasted space, sequential read/write fast.
+  \item \textbf{CONS}: Delete may cause wasted space.
+\end{itemize}
+this structure are frequently used jointly with unclustered indices to support search and sort operations.\\
+In the ordered structures everything is sorted by the value of a given key, called sort key, it can contain one or more attributes.
+\begin{itemize}
+  \item \textbf{PRO}: Sort, group by, search or join operations on the sort key really fast.
+  \item \textbf{CONS}: Inserting new value preserving order.
+\end{itemize}
+the main problem of this solution is to keep the order of the data during new data insertion.
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
