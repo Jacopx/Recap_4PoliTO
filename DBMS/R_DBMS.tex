@@ -165,7 +165,103 @@ In the ordered structures everything is sorted by the value of a given key, call
   \item \textbf{PRO}: Sort, group by, search or join operations on the sort key really fast.
   \item \textbf{CONS}: Inserting new value preserving order.
 \end{itemize}
-the main problem of this solution is to keep the order of the data during new data insertion. There are two main solution, the first il leaving a percentage of free space in each block during the table creation.
+the main problem of this solution is to keep the order of the data during new data insertion. There are two main solution, the first il leaving a percentage of free space in each block during the table creation; the second one create an overflow file containing tuples which do not fit into the correct block.\\
+The ordered structure are typically used with $B^{+}$-Tree clustered (primary) indices where the index key is the sort key. Are used bt the DBMS too to storing intermediate operation results. This structure provide "direct" access to data based on a key (one or more attributes). This Tree have one root node with many intermediate nodes and each node has many children. The leaf nodes provide access to data in 2 different ways:
+\begin{itemize}
+  \item \textbf{Clustered}: It store the data in the main memory. Used for primary key indexing. [figure \ref{fig:clu}]
+  \item \textbf{Unclustered}: It store a pointer to the secondary memory of the data. Used for secondary indices. [figure \ref{fig:unclu}]
+\end{itemize}
+\begin{figure}[!hbpt]
+  \centering
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/clu.png}
+    \caption{Clustered}
+    \label{fig:clu}
+  \end{minipage}\hfill
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/unclu.png}
+    \caption{Unclustered}
+    \label{fig:unclu}
+  \end{minipage}\hfill
+\end{figure}
+There are two kind of B-Tree:
+\begin{itemize}
+  \item \textbf{B-Tree}: Data pages are reached only through key values by visiting the tree. [figure \ref{fig:b}]
+  \item \textbf{$B^{+}$-Tree}: Provides link leaf allowing sequential access in the sort order. [figure \ref{fig:bplus}]
+\end{itemize}
+\begin{figure}[!hbpt]
+  \centering
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/b.png}
+    \caption{B-Tree}
+    \label{fig:b}
+  \end{minipage}\hfill
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/bplus.png}
+    \caption{$B^{+}$-Tree}
+    \label{fig:bplus}
+  \end{minipage}\hfill
+\end{figure}
+the B stands for \textbf{Balanced} where leaves are all at the same distance from the root and the search time is the same indipendently by the value.\\
+This structure have some:
+\begin{itemize}
+  \item \textbf{Advantages}:
+  \begin{itemize}
+    \item Very efficent for range queries.
+    \item Appropriate for sequential scan in the order of the key field (always for clustered, not guarantee otherwise).
+  \end{itemize}
+  \item \textbf{Disadvantage}:
+  \begin{itemize}
+    \item Insertion may require a leaf or nodes split.
+    \item Deletions may require merging uncrowded nodes and re-balancing.
+  \end{itemize}
+\end{itemize}
+
+The \textbf{Hash} structure is another kind of weel-know structure is guarantees direct and efficent access to data based on the value of a key field (one or more attributes). Supposing to have B blocks in the hash structure the hash function is applied to the key value of a record and in return a values between 0 and b-1 which defines the position of the record, the idea is to not completly fill the blocks to allows new data insertion.
+\begin{itemize}
+  \item \textbf{Advantages}:
+  \begin{itemize}
+    \item Very efficent for queries with equality predicate on the key.
+    \item No sorting of disk blocks is required.
+  \end{itemize}
+  \item \textbf{Disadvantage}:
+  \begin{itemize}
+    \item Inefficent for range queries.
+    \item Collision may occur.
+  \end{itemize}
+\end{itemize}
+
+The unclustered versione is similar to the hash index, the main difference is that the actual data is stored in a separate structure and the position of tuples is not constrained to a block.\\
+
+The \textbf{bitmap index} is another structure that provides direct and efficient access to data based on the value of a key field, it's based on a bit matrix. The bit matrix references data rows by means of RIDs (Rows IDentifiers), the actual data is stored in a separate structure and the tuples position is not constrained.\\
+The bit matrix has:
+\begin{itemize}
+  \item One column for each different value of the indexed attribute
+  \item One row for each tuple.
+\end{itemize}
+the \textit{(i, j)} position has a 1 if the tuple \textit{i} as \textit{j} like attributes for the key field, 0 otherwise.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/bitmapindex.png}
+  \caption{Bitmap Index}
+  \label{fig:bitmapindex}
+\end{figure}
+the main characteristics are:
+\begin{itemize}
+  \item \textbf{Advantages}:
+  \begin{itemize}
+    \item Very efficent for boolean expressions of predicates.
+    \item Appropriate for attributes with limited domain cardinality.
+  \end{itemize}
+  \item \textbf{Disadvantage}:
+  \begin{itemize}
+    \item Not used for continuous attributes.
+    \item Required space grows significantly with domain cardinality.
+  \end{itemize}
+\end{itemize}
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
