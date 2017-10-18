@@ -193,6 +193,48 @@ where:
 in the pipelined processor, $CPI_{i}$ may vary for a given instruction, therefore the evaluation becomes much harder.
 % END Part 1 - Introduction
 
+\subsection{Instruction Set Principles}
+The Instruction Set Architecture (ISA) is hoe the computer is seen by the programmer or the compiler. There are different kind of design and they can be selected by different characteristics. The CPUs are often classified according to the type of their internal storage:
+\begin{itemize}
+  \item Stack: Is the simplest one it can't accessing memory during operations.
+  \item Accumlator: Similar to 8051 can access the memory during operation.
+  \item Registers
+  \begin{itemize}
+    \item Register-memory: Similar to 8086, have a 16-bit register.
+    \item Register-Register (load-store)
+    \item Memory-memory (no real cases)
+  \end{itemize}
+\end{itemize}
+Nowadays all processors are General-Purpose Register (GPR) this because registers are faster than memoery and are easier for a compiler to use. The CPUs are also classifiable by the number of operant per ALU instruction (2 or 3) and number of memory operand per ALU.\\
+There are many different \textbf{memory addresses} that can be implemented:
+\begin{itemize}
+  \item \textbf{Little Endian}: Byte with lower address at the least significant position. The addresses of the data is that of the LSB.
+  \item \textbf{Big Endian}: Byte with lower address at the most significant position. The addess of the data is that of the MSB.
+  \item \textbf{Aligned}: Allowing only aligned accesses to memory could is a limitation in terms of performance.
+  \item \textbf{Misaligned}: This solution require hardware and performance overhead.
+\end{itemize}
+A memory position can be accessed in different ways:
+\begin{itemize}
+  \item \textbf{Register}: (ADD R4, R3) when a value is in a register.
+  \item \textbf{Immediate}: (ADD R4, \#3) for constants.
+  \item \textbf{Displacement}: (ADD R4, 100(R1)) accessing local variables.
+  \item \textbf{Deferred or Indirect}: (ADD R4, (R1)) accessing using a pointer or a computed address.
+  \item \textbf{Indexed}: (ADD R3, (R1 + R2)) useful in array addressing: R1=array base, R2=index.
+  \item \textbf{Direct or Absolute}: (ADD R1, (1001)) useful for accessing static data.
+  \item \textbf{Indirect}: (ADD R1, @(R3)) if R3 is the addr. of a pointer p, then the mode is like \*p.
+  \item \textbf{Autoincrement or decrement}: (ADD R1, (R2)$\pm$) useful for stepping through array within a loop.
+\end{itemize}
+Is important to choosing the correct addressing mode, one can obtain some important consequences, from reduing the number of instruction to increasing the architecture.\\
+There are a lot of instruction that can be done, looking at the 80x86 frequency we can see that most most used are \textit{Load, Conditional Branch, Compare and Store} that are around the 70\% of the total operation performed.\\
+The instruction set encoding depends on which instruction compose the instruction set and which addressing modes are supported. When a high number of addressing modes is supported, and address specifier is used to specified the addressing mode. When the number of addressing modes is low, they can be encoded together with the opcode. The different encoding are:
+\begin{itemize}
+  \item \textbf{Variable}: Any number of operands, operation with variable length, lower performance and minimum code size.
+  \item \textbf{Fixed}: Fixed number of operands, need address specifier, fixed instruction length, maximum performance but larger code size.
+  \item \textbf{Hybrid}: Multiple format specified by the opcode and it allows a trading-off between code size and performance.
+\end{itemize}
+
+Assembly-level programs are now produced by compilers only. The CPU designer and the compiler writer must interact and cooperate. A crucial part taken by the compiler is the optimization of the register using, it easier to solve it when the number of register is higher (>16).
+
 \bibliographystyle{abbrv}
 \bibliography{simple}
 

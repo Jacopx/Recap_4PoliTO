@@ -263,6 +263,111 @@ the main characteristics are:
   \end{itemize}
 \end{itemize}
 
+\subsection{Query Optimization}
+The query optimizer is part of the Optimizer and its job is selecting an efficient strategy for query execution, this block is really important. Another important task is to guarantees the data independence property, in fact, the form in which the SQL query is written does not affect the way in which it is implemented and a physical reorganization of data does not require rewriting SQL queries.\\
+The query optimizer generates a \textbf{Query Execution Plan} to use the best strategies to run the query, it evaluates many different alternative, it use data statistics, use best-know strategies and it adapts automatically on data changes. The plan has more phases as you can see in figure \ref{fig:opt_plan}. The behaviour of each phase is:
+\paragraph{Lexical, Synctactic and Semantic analysis}: check the SQL for Lexical errors (e.g., misspelled keywords), Syntactical errors in the SQL grammar and for Semantic erros not existing object called in the query (require data dictionary). The output of this block is an internal rappresentation of extended relational algebra because it can represent the order in which operators are applied (procedural) and there are a lot of theorems and properties.\\
+\paragraph{Algebraic Optimization}: executing algebraic transformations is considered to be always beneficial, it should eliminate the difference among different formulations of the same query and is usually independet of the data distribution. The output of this phase is a "canonical" tree.\\
+\paragraph{Cost Based Optimization}: This phase select the best execution plan evaluating the execution cost, it use a selection of:
+\begin{itemize}
+  \item Best access method for each table.
+  \item Best algorithm for each relational operator among available alternatives.
+\end{itemize}
+the last step of this phase is the generation of the code implementing the best strategies, the output is the executable and all the dependencies used.\\
+There are two types of execution modes:
+\begin{itemize}
+  \item \textbf{Compile and Go}: Compilation and immediate execution, no storage of query plan and no need of dependencies.
+  \item \textbf{Compile and Store}: The plan is stored in the DB together with its dependencies, it's executed on demand and it need to be recompiled in data structure changes.
+\end{itemize}
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/opt_plan.png}
+  \caption{Optimization Execution Plan}
+  \label{fig:opt_plan}
+\end{figure}
+
+The phase of \textbf{Algebraic Optimization} require a little more of analysis. The part is bbased on equivanlence trasformations, \textit{two relational expressions are equivalent if they both produce the same query result for any arbitrary database instance}. The main objective of this part is to \textbf{reduce the size of the intermediate result}.\\
+There are some well-know transformation:
+\begin{enumerate}
+  \item \textbf{Atomization of selection}: Applying all attributes of selection one at the time or all together can provide different performance in case of indicies.
+  \item \textbf{Cascading Projections}: It possibile to perform directly the final projection o doing more projections with different sub-set and you can obtain the same result.
+  \item \textbf{Selection before join}: Anticipating the selection respect a join-operation can reduce the cardinality of the system reducing the number of operations for the join (is always used by the DBMS).
+  \item \textbf{Join derivation from Cartesian Product}: Perform a cartesian product and then a selection over data get the same result as the join operation but more slowly.
+  \item \textbf{Distributing selection respect union}: Is equivalent to select a sub-set and then merge it with another subset or merge the two set and then selecting it.
+  \item \textbf{Distributing selection respect difference}: The formulas explain better: $\sigma_{F}(E_1 - E_2) = \sigma_{F}(E_1) - \sigma_{F}(E_2) = \sigma_{F}(E_1) - E_2 $.
+  \item \textbf{Distributing projection respect union}: Projection of union of 2 table is equivalent to the union of 2 already projected table.
+  \item \textbf{Other}: $\sigma_{F1 \vee F2}(E) = (\sigma_{F1}(E)) \cup (\sigma_{F2}(E))$
+  \item \textbf{Other}: $\sigma_{F1 \wedge F2}(E) = (\sigma_{F1}(E)) \cap (\sigma_{F2}(E))$
+  \item \textbf{Distributing join respect union}: Perform join of a table E with two merged table (E1 $\cup$ E2), is equivalent to join E with E1 and E2 separate and the merge it.
+\end{enumerate}
+
+The phase of \textbf{cost based optimization} is a little bit more complicated, it is based on:
+\begin{itemize}
+  \item \textbf{Data Profiles}: Statistical information describing data distribution for tables and intermediate relational expression.
+  \item \textbf{Approximate cost}: Evaluating cost by looking at CPU, HDD and main memory usage and time.
+\end{itemize}
+The profilings of table save quantitavive information on the characteristics of tables and columns:
+\begin{itemize}
+  \item Cardinality of tuples.
+  \item Size in bytes of tuples.
+  \item Size in bytes of each attributes.
+  \item Number of dinstinct values of each attribute.
+  \item Min and max value of each attribute.
+\end{itemize}
+all this information are stored in the data dictionary that is periodically refreshed.\\
+
+The access operators can perform different types of scans. The \textbf{sequential scan} execute sequential access to all tuples in a table (a.k.a Full Table Scan). The operation performed during a sequential scan:
+\begin{itemize}
+  \item Projection.
+  \item Selection (Simple predicate).
+  \item Sorting based on attribute list (memory sort or sort on disk).
+  \item Insert, Update or Delete.
+\end{itemize}
+the predicate evaluation is fundamental to provide an efficent access to the data. The index access it may be exploit with all kind of structures, in case of simple equality predicate all structure are appropriate. Instead, for range predicate, the only appropriate one is the $B^{+}$-Tree. For predicates with limited selectivity full scan is better (if available bitmap could be used). In case of conjunction fo predicates the most selective one is evaluated first through the index, then the other. A possible optimization could be computing the intersection of bitmaps coming from available indices and then a table read for remaing predicates. In the disjunction the index access can be used only if all predicates have and usable index, otherwise FTS.\\
+The join operation can be a critical operation for a relational DBMS, the connection between tables is based on values instead of pointer. There are several algorithms that can be used for the join:
+\begin{itemize}
+  \item \textbf{Nested Loop}: For each tuples of the outer table, the inner one is readed once. (BRUTE FROCE)
+  \begin{itemize}
+    \item Efficent when the inner tavle is small and fits in memory or when the join attribute in the inner table is indexed.
+    \item Not cost symmertric. It depends on which table takes the role of inner.
+  \end{itemize}
+  \item \textbf{Merge Scan}: It sort the two tables on the join attribute and it start a parallel scan.
+  \begin{itemize}
+    \item Symmetric in terms of cost. Efficent for large and already-sorted tables.
+    \item Requires sorting both table (already sorted or trough clustered index).
+  \end{itemize}
+  \item \textbf{Hash Join}: It applicate the same hash function to the join attrbute of both table. Tuples to be joined will fill the same bucket.
+  \begin{itemize}
+    \item Very fast join.
+    \item Local sort and join is performed into each bucket.
+  \end{itemize}
+  \item \textbf{Bitmapped Join Index}: It precompute the join. The position (i,j) of the matrix is 1 if the tuple with RID j of A joins with tuple with RID i in table B and 0 otherwise.
+  \begin{itemize}
+    \item A data change need a recompute of table.
+    \item Used in OLAP queries.
+    \item It can exploit one or more bitmapped join indices (one for each pair of joined tables) and accessing the large central table is the last step.
+  \end{itemize}
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 \bibliographystyle{abbrv}
 \bibliography{simple}
 
