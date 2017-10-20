@@ -193,7 +193,8 @@ where:
 in the pipelined processor, $CPI_{i}$ may vary for a given instruction, therefore the evaluation becomes much harder.
 % END Part 1 - Introduction
 
-\subsection{Instruction Set Principles}
+\section{Instruction Set Principles}
+\subsection{Introduction}
 The Instruction Set Architecture (ISA) is hoe the computer is seen by the programmer or the compiler. There are different kind of design and they can be selected by different characteristics. The CPUs are often classified according to the type of their internal storage:
 \begin{itemize}
   \item Stack: Is the simplest one it can't accessing memory during operations.
@@ -206,6 +207,9 @@ The Instruction Set Architecture (ISA) is hoe the computer is seen by the progra
   \end{itemize}
 \end{itemize}
 Nowadays all processors are General-Purpose Register (GPR) this because registers are faster than memoery and are easier for a compiler to use. The CPUs are also classifiable by the number of operant per ALU instruction (2 or 3) and number of memory operand per ALU.\\
+
+\subsection{Memory}
+The memory has a fundamental work in the CPU world, there are several different type of it and of course different type to how accessing it.\\
 There are many different \textbf{memory addresses} that can be implemented:
 \begin{itemize}
   \item \textbf{Little Endian}: Byte with lower address at the least significant position. The addresses of the data is that of the LSB.
@@ -233,7 +237,47 @@ The instruction set encoding depends on which instruction compose the instructio
   \item \textbf{Hybrid}: Multiple format specified by the opcode and it allows a trading-off between code size and performance.
 \end{itemize}
 
-Assembly-level programs are now produced by compilers only. The CPU designer and the compiler writer must interact and cooperate. A crucial part taken by the compiler is the optimization of the register using, it easier to solve it when the number of register is higher (>16).
+Assembly-level programs are now produced by compilers only. The CPU designer and the compiler writer must interact and cooperate. A crucial part taken by the compiler is the optimization of the register using, it easier to solve it when the number of register is higher ($>$16).
+
+\section{Pipelining}
+\subsection{Introduction}
+Pipelining is an a solution to execute multiple instructions at the same time overlapping it. The different units (also called \textit{stage} or \textit{segment}) are completing different part of different instruction in parallel. The figure \ref{fig:pipe_ex} is an example of this techniques.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/pipe_ex.png}
+  \caption{Pipeling example}
+  \label{fig:pipe_ex}
+\end{figure}
+The \textbf{throughput} of a pipelined processor is the number of instructions which exit the pipeline in the time unit. All the pipeline stages are synchronized (they proceed to executing the new task all together); the necessary time for executing one step is called machine cycle and, normally, corresponds to one clock cycle. Of course the duration of a machine cycle is determined by the slowest stage. CPI means clock cycles per instruction. The ideal pipeline have all stages perfectly balanced, in this way the $TRP_{pipelined} = TRP_{unpipelined} * n$ where \textit{n} is the number of pipeline stages.
+
+\subsection{Behaviour}
+The execution of each instruction may be composed of at most five clock cycles:
+\begin{itemize}
+  \item \textbf{IF}: Fetch the instruction from the memory address of the PC and save it in the IR.
+  \item \textbf{ID}: Decode the instruction just fetched.
+  \item \textbf{EX}: Execute the instruction.
+  \item \textbf{MEM}: Memory access and brach completion.
+  \item \textbf{WB}: Write-back.
+\end{itemize}
+with the unpipelined processor all instruction require 5 CC, the only optimization to reduce the average CPI is completing the ALU instruction during the MEM cycle, hardware resources could be optimized avoiding duplications.\\
+The pipelined version instead can be more powerful beacause a new instrcution is started at each clock cycle and different  resources work on different instruction at the same time. There are several consideration to keep in mind during the development of this units; at every clock cycle, each resource can be used for one purpose only, this means that:
+\begin{itemize}
+  \item Separate instruction and data memories must be used.
+  \item The register file is used in two stages: for reading (second half of CC) in ID stage and for writing (first half od CC) in WB stage.
+  \item The PC (\textit{Program Counter}) must be changed in the IF stage, What about branches?
+\end{itemize}
+A little view of the system behaviour in figure \ref{fig:time_evo_pipe}.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/time_evo_pipe.png}
+  \caption{Evolution in time of Pipeling architecture}
+  \label{fig:time_evo_pipe}
+\end{figure}
+
+\paragraph{Performance} The first puorpose of this architectural type is the performance increase without making single instruction faster. The single instruction are maded slower for the overhead introduced by the pipeline control. The limitations of a pipeline come from the necessity of balanced stages and pipeling overhead (pipeline register delay and clock skew).
+
+%\subsection{Hazards} 4_Pipeling @ Page 21
+
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
