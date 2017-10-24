@@ -324,7 +324,8 @@ The access operators can perform different types of scans. The \textbf{sequentia
   \item Insert, Update or Delete.
 \end{itemize}
 the predicate evaluation is fundamental to provide an efficent access to the data. The index access it may be exploit with all kind of structures, in case of simple equality predicate all structure are appropriate. Instead, for range predicate, the only appropriate one is the $B^{+}$-Tree. For predicates with limited selectivity full scan is better (if available bitmap could be used). In case of conjunction fo predicates the most selective one is evaluated first through the index, then the other. A possible optimization could be computing the intersection of bitmaps coming from available indices and then a table read for remaing predicates. In the disjunction the index access can be used only if all predicates have and usable index, otherwise FTS.\\
-The join operation can be a critical operation for a relational DBMS, the connection between tables is based on values instead of pointer. There are several algorithms that can be used for the join:
+
+The \textbf{join} operation can be a critical operation for a relational DBMS, the connection between tables is based on values instead of pointer. There are several algorithms that can be used for the join:
 \begin{itemize}
   \item \textbf{Nested Loop}: For each tuples of the outer table, the inner one is readed once. (BRUTE FROCE)
   \begin{itemize}
@@ -349,24 +350,115 @@ The join operation can be a critical operation for a relational DBMS, the connec
   \end{itemize}
 \end{itemize}
 
+The \textbf{Group By} is one of the most important function of SQL and is performed in 2 different ways: The first one is the sort based, it sort the data on the group by attributes and the compute aggregate functions on groups; the hash based one instead it perform and hash function over data, sort the bucket just created and than compute the aggregate function.
 
+\paragraph{Execution plan selection} is based on some data input, the data profiles (statistics over data) and the internal representation of the query tree, the output of this part is the "optimal" (it can't assure that it will be the best one) execution plan. This phase evaluate the cost of different alternatives for read tables and executing each relational operator exploting an approximate cost of execution.\\
+The search is based on the following parameters:
+\begin{itemize}
+  \item Scan type of data (full scan, index).
+  \item Execution order among operators.
+  \item Type of operators implementation (different join methods).
+  \item Sorting time (when).
+\end{itemize}
+The approach work on a tree of alternatives where each nodes represent a decision on a variable and the leaf one complete query execution plan. Of course the system select the cheapest one. The general formula is $C_{Total} = C_{I/O}*n_{I/O} + C_{CPU}*n_{CPU}$ where $n_{I/O}$ is the number of I/O operations and $n_{CPU}$ is the number of CPU operations.\\
+The final plan is an approximation of the best solution. Th optimizer looks for a solution which is of the same order of magnitude of the "best" solution. In the \textbf{Compile and Go} execution mode the search is stopped when the time spend for the search is comparable to the time required to execute the current best plan. % 4_QueryOptimization finished
 
+\subsection{Physical Design}
+The physical distribution of the data in the system is fundamental for providing good performance. Taking in account the logical schema of the DB, the features of the selected DBMS and thw workload this block provides a physical schema of the databse (table organization, indices) and all necessary set up parameters for storage and configurations.\\
+The possible physical file organization are:
+\begin{itemize}
+  \item Unordered (heap).
+  \item Ordered (clustered).
+  \item Hashing on hash-key.
+  \item Clustering several relations.
+\end{itemize}
+The number of indicies is related to the structure type of the system. In case of clustered is possible to define only one index, instead, unclustered structures allow to define multiple different indices.\\
+The workload distribution is different in case of a normal query or for an update. The first case involve:
+\begin{itemize}
+  \item Accessed tables.
+  \item Visualized Attributes.
+  \item Attributes involve in selections and joins.
+  \item Selectivity of selections.
+\end{itemize}
+the update case instead:
+\begin{itemize}
+  \item Attributes and tables involved in selections.
+  \item Selectivity of selections.
+  \item Update type (Ins/Del/Up) and updated attributes.
+\end{itemize}
+The selection of the structure is important and it could be changed during the usage of the system for improvement (database tuning). Changes in the logical schema are allowed and they can or cannot preserve the BCNF (Boyce Code Normal Form). There isn't a general methodology the best solutions are trial and error, some general criteria and "common sense" heuristic.\\
+Some general criteria could be:
+\begin{itemize}
+  \item Primary Key is usually exploited for selection and joins, indexing it could be useful.
+  \item Adding new indices for most common query predicates. Evaluate the actual plan and verify the improvement if available.
+  \item Never index small table, the entire table requires few disk reads.
+  \item Never index attributes with low cardinality (e.g. gender). This is not true for data warehouses.
+\end{itemize}
+from the heuristics point of view there are severals "common sense" ideas:
+\begin{itemize}
+  \item For attributes involved in simple predicates of where clause equality:hash and range:$B^{+}$-Tree.
+  \item Evaluated clustered improvement for slow queries.
+  \item For where clauses involving many simple predicates use multi attributes index or appropriate key order.
+  \item Maintenance cost.
+  \item To improve joins use index on inner table in case of nested loop or $B^{+}$-Tree, for merge scan, on the join attribute.
+  \item For group by hash index or $B^{+}$-Tree.
+  \item Consider group by push down that anticipate the group respect to joins.
+\end{itemize}
+of course after all the changes a good choice could be update database statistics, for future improvements the database tuning could help. The last chance can be affecting optimizer decision, the main problem is the lost of data independence.
 
+\subsection{Concurrency Control}
+The workload of operational DBMS is measured in \textit{transaction per second} (banking and flight reservation are on 10-1000 tps). This block provide concurrent access to data maximizing the throughput and minimizing response time. The elementary operations are of course \textbf{READ r(x)} and \textbf{WRITE w(x)}. The block that manage the concurrency is called scheduler is in charge of deciding if and when read/write request can be satisfied.\\
+The most common anomalies are:
+\begin{itemize}
+  \item \textbf{Lost Update}: It occur when a tr2 read a value that is already under operations by another tr. (figure \ref{fig:lost_update})
+  \item \textbf{Dirty Read}: When a tr2 read the value of x in an intermediate state which never become permanent. (figure \ref{fig:dirty_read})
+  \item \textbf{Inconsistent Read}: When a tr1 read multiples times x with different value each time. (figure \ref{fig:inco_read})
+  \item \textbf{Ghost Update}: It occur when two transaction are working over multiple data at the same time performing read and write. (figure )
+\end{itemize}
 
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/lost_update.png}
+  \caption{Lost Update Behaviour}
+  \label{fig:lost_update}
+\end{figure}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/dirty_read.png}
+  \caption{Dirty Read Behaviour}
+  \label{fig:dirty_read}
+\end{figure}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/inco_read.png}
+  \caption{Inconsistent Read Behaviour}
+  \label{fig:inco_read}
+\end{figure}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/ghost_up.png}
+  \caption{Ghost Update Behaviour}
+  \label{fig:ghost_up}
+\end{figure}
 
+\paragraph{Theory of Control} a \textit{transaction} is a sequence of R/W operations with the same TID (\textit{Transaction Identifier}); the \textit{schedule} is a sequence of read/write operations presented by concurrent transaction. The scheduler is in charge of accepts or reject the requests to avoid anomalies without knowing the outcome (commit/abort) of it.\\
+Commit projection is a simplifying hypothesis (the schedule only contains transaction performing commit), it avoid dirty read anomaly, it will be removed later.\\
+In a \textbf{serial schedule}, the actions of each transaction appear in sequence, without interleaved actions. An arbitrary schedule $S_{i}$ is correct when it yields the same results as an arbitrary serial schedule $S_{j}$ of the same transactions. $S_{i}$ is serializable, is equivalent to an arbitrary serial schedule of the same transaction. There are different equivalence classes between two schedules:
+\begin{itemize}
+  \item View equivalence
+  \item Conflict equivalence
+  \item 2 phase locking
+  \item Timestamp equivalence
+\end{itemize}
+each equivalence class find a set of acceptable schedules characterized by a different complexity.
 
-
-
-
-
-
-
-
-
-
-
-
-
+\paragraph{View equivalence} there some definitions to be introduced:
+\begin{itemize}
+  \item \textbf{reads-from}: $r_{i}(x)$ reads-from $w_{j}(x)$ when:
+  \begin{itemize}
+    \item $w_{j}(x)$ precedes $r_{i}(x)$ and $i \neq j$
+    \item There is no other $w_{k}(x)$ between them.
+  \end{itemize}
+  \item \textbf{final write}: is a final write if it is the last write of x appearing in the schedule.
+\end{itemize}
+with this solution two schedules are view equivalent if they have the same reads-from set or the same final write set.
+% Concurrency Control @ Pag 20
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
