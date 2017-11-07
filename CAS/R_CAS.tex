@@ -16,6 +16,7 @@
 \usepackage{float}
 \usepackage{amssymb}
 \usepackage{ifsym}
+\usepackage{listings}
 % Misure Documento
 \geometry{ a4paper, total={170mm,257mm},left=35mm, right=35mm, top=35mm, bottom=35mm }
 
@@ -276,7 +277,66 @@ A little view of the system behaviour in figure \ref{fig:time_evo_pipe}.
 
 \paragraph{Performance} The first puorpose of this architectural type is the performance increase without making single instruction faster. The single instruction are maded slower for the overhead introduced by the pipeline control. The limitations of a pipeline come from the necessity of balanced stages and pipeling overhead (pipeline register delay and clock skew).
 
-%\subsection{Hazards} 4_Pipeling @ Page 21
+\subsection{Hazards}
+The hazards are situations that prevent the execution of an instruction during its designated clock cycle. There are 3 classes of hazards:
+\begin{itemize}
+  \item \textbf{Structural}: Coming from resource conflict.
+  \item \textbf{Data}: And instruction depends on the result of a previous instruction.
+  \item \textbf{Control}:Depend on pipelining branches and other instructions that change the PC.
+\end{itemize}
+One way to dealing with hazards is to force the pipeline to stall, i.e., to block instructions for one or more clock cycles. When and instruction is stalled:
+\begin{itemize}
+  \item The instructions following the stalled instruction are also stalled.
+  \item The instructions preceding the stalled instruction continue.
+\end{itemize}
+A stall causes the introduction of a bubble in the pipeline.
+
+\paragraph{Structural hazards} they may happen when some pipeline unit is not able to execute all the operations scheduled for a given cycle. Example:
+\begin{itemize}
+  \item A given unit is not able to complete its task in one clock cycle (division).
+  \item The pipeline owns only one register-file write port, but there are cycles in which two register writes are required.
+  \item The pipeline refers to a single-port memory, and there are cycles in which different instructions would like to access to the memory target.
+\end{itemize}
+Solving this problem implies adding or improving the hardware.
+
+\paragraph{Data hazards} overlapping the execution of instructions, as it is done by pipelining, changes the order of read/write accesses to operands. This can lead to wrong results and undeterministic behaviour.\\
+An example could be:\\
+\begin{lstlisting}
+ADD R1, R2, R3
+SUB R4, R1, R5
+AND R6, R1, R7
+\end{lstlisting}
+The second instruction will read the value of R1 before the first instruction can write the new value. This will cause a wrong result. And is the same of course for the third instruction.\\
+If an \textbf{Interrupt effects} occurs during the execution of a critical piece of code (from the pov of data hazards) correctness may be restored. This may causa an undeterministic behaviour.\\
+There are two possibile solution for data hazards problems:
+\begin{itemize}
+  \item The first is using the stall till the data will be available.
+  \item Implementing the \textbf{forwarding} technique.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 \bibliographystyle{abbrv}

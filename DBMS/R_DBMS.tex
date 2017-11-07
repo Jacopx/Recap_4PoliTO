@@ -457,8 +457,81 @@ each equivalence class find a set of acceptable schedules characterized by a dif
   \end{itemize}
   \item \textbf{final write}: is a final write if it is the last write of x appearing in the schedule.
 \end{itemize}
-with this solution two schedules are view equivalent if they have the same reads-from set or the same final write set.
-% Concurrency Control @ Pag 20
+with this solution two schedules are view equivalent if they have the same reads-from set or the same final write set.\\
+This techniques is easy to be understand using an example. Using the flow in figure \refeq{fig:ex1}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/ex1.png}
+  \caption{View Equivalence Example}
+  \label{fig:ex1}
+\end{figure}
+The corrisponding schedule is: $S = r_{1}(x)r_{2}(x)w_{2}(x)w_{1}(x)$ is this schedule serializable?\\
+There are only 2 possible serial schedules:
+\begin{equation}
+  \begin{gathered}
+    S_{1} = r_{1}(x)w_{1}(x)r_{2}(x)w_{2}(x)\\
+    S_{2} = r_{2}(x)w_{2}(x)r_{1}(x)w_{1}(x)
+  \end{gathered}
+\end{equation}
+In both cases S is not view equivalent to any serial schedule, not serializable, should be rejected.\\
+The analization of this problem is linear if the schedule is given, in case of an arbitrary schedule it become NP-complete. For this problem is better to use a less accurate, but faster techniques.
+
+% Concurrency @ Pag. 30
+\paragraph{Conflict equivalence}
+Two actions are in conflict when both operate on the same object and at least one of them is a write. The conflict can be, RW, WR or WW. The conflict are equivalent if they have:
+\begin{itemize}
+  \item Same conflict set.
+  \item Each conflict pair is in the same order in both schedules.
+\end{itemize}
+A schedule is conflict serializable (\textbf{CSR}) if it is equivalent to an arbitrary serial schedule of the same transaction.\\
+Dectecting the conflict serializability it is possible to exploit the conflict graph:
+\begin{itemize}
+  \item Node: Each transaction.
+  \item Edge i$\rightarrow$j: if is there at least a conflict between $T_{i}$ and $T_{j}$.
+\end{itemize}
+checking the cyclicity of a graph is linear in the size of the graph.
+
+\paragraph{2 Phase Locking} a lock is block on a resource which may prevent access to others. The operations are:
+\begin{itemize}
+  \item \textbf{Lock}
+  \begin{itemize}
+    \item Read Lock (R-Lock)
+    \item Write Lock (W-Lock)
+  \end{itemize}
+  \item \textbf{Unlock}
+\end{itemize}
+Each operation is preceded by a request of R/W-Lock and is followed by a request of unlock. Of course the R-Lock is shared among different transaction, the write lock instead is exclusive, not compatible with any other lock.\\
+The scheduler becomes a lock manager it receives transaction requests and grants locks based on locks already granted and so on...\\
+When the lock request id \textbf{granted}:
+\begin{itemize}
+  \item The resource is acquired by the requesting transaction.
+  \item After the unlock, the resource, becomes again available.
+\end{itemize}
+When the lock is \textbf{not granted}:
+\begin{itemize}
+  \item The requesting transaction is put in a waiting state.
+  \item The wait is terminated when the resources is unlocked and becomes available again.
+\end{itemize}
+All the information for grant or not the lock are stored in the \textbf{lock table} with the \textbf{conflict table} (figure \ref{fig:conflict}) used to manage lock conflicts.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/conflict.png}
+  \caption{Conflict Table}
+  \label{fig:conflict}
+\end{figure}
+
+The read locks are shared this is because the read not change the state of a data and multiple access can be exploited at the same time. A counter is used to count the number of R-Lock granted on a resources.\\
+The lock manager, that coordinates the grant, exploit the lock table stored in main memory and, for each data object, use 2 bits to represent the 3 possible states (free, r-locked, w-locked) and a counter to count the number of waiting transaction. An example in figure \ref{fig:TwoPhaseEx}.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/TwoPhaseEx.png}
+  \caption{Conflict Table}
+  \label{fig:TwoPhaseEx}
+\end{figure}
+
+There is also another version of the 2 phase locking the STRICT version. In this solution the unlock will be performed only at the end o the transaction and not when the resources is released; this difference guarantee to avoid the dirty read anomaly.\\
+The procedure is really fast. If a transaction keep in wait over timeout the lock manager resume it and returns a NOT OK ERROR, the requesting transaction may perform a rollback o request again the same resources.
+
+% Concurrency Control @ Pag. 57 = Hierarchical Locking
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
