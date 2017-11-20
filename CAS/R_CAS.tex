@@ -17,6 +17,8 @@
 \usepackage{amssymb}
 \usepackage{ifsym}
 \usepackage{listings}
+\usepackage{multicol}
+
 % Misure Documento
 \geometry{ a4paper, total={170mm,257mm},left=35mm, right=35mm, top=35mm, bottom=35mm }
 
@@ -314,29 +316,167 @@ There are two possibile solution for data hazards problems:
   \item Implementing the \textbf{forwarding} technique.
 \end{itemize}
 
+\paragraph{Forwarding} A special hardware in the datapath detects when a previous ALU operation should write the register corresponding to the source of the current ALU. In this case, the hardware, selects the ALU result as the ALU input rather than the value from the register file. This part must be able to:
+\begin{itemize}
+  \item Forward a data from any of the previously started instructions (the data can't be already writed in its final location).
+  \item Not to forward anything, if the following instruction is stalled, or an interrupt occurred.
+\end{itemize}
+an example can be viewed in the figure \ref{fig:forward_ex}.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/forward_ex.png}
+  \caption{Forwarding Example}
+  \label{fig:forward_ex}
+\end{figure}
 
+The forwarding can be implemented:
+\begin{itemize}
+  \item From the ALU or data memory output...
+  \item ...to ALU inputs, data memory inputs, or the zero detection unit (branch instruction).
+\end{itemize}
+and the logic must compare:
+\begin{itemize}
+  \item The DEST fields of the IR in the EX-MEM and MEM-WB register with...
+  \item ... the SRC fileds of the IR in the IF-ID, ID-EX and EX-MEM registers.
+\end{itemize}
 
+\paragraph{Causes of Data Hazards} A hazards is created whenever there is dependence betweem instructions, and they are close enough that the overlap caused by pipeling would change the order of access to an operand.
+In general, this can happen for:
+\begin{itemize}
+  \item Register Operands
+  \item Memory Operands:
+  \begin{itemize}
+    \item Acceses to memory by load and store are not made in the same stage.
+    \item execution can proceed while an instruction waits for a cache miss to be solved.
+  \end{itemize}
+\end{itemize}
+The forwarding not solve all potential data hazards, in this case to only solution is to use stalls.
 
+\paragraph{Stalls} At each clock cycle all test for detecting data hazards are performed (ID stage), if an hazard is detected two actions can be taken:
+\begin{itemize}
+  \item The apporpriate forwarding is enabled.
+  \item The instruction is stalled before entering in the wrong stage.
+\end{itemize}
+This situation can be performed in two ways:
+\begin{itemize}
+  \item Forcing all 0s in the ID-EX pipeline register (\textit{nop} instruction).
+  \item Forcing the IF-ID pipeline register to maintain the current value.
+\end{itemize}
 
+\paragraph{Control Hazards} are due to branches, which may change the PC after the following instruction has been fetched already. In the case of conditional branches, the decision on whether the PC should be modified or not can be taken even later. In the MIPS implementation, the PC is written with the target address (if the jumo is taken) at the end of the ID stage.\\
+A possible solution is based on stalling the pipeline as soon as a branch instruction is detected (ID stage) by:
+\begin{itemize}
+  \item Decide earlier whether the branch has to be taken or not.
+  \item Compute earlier the new PC.
+\end{itemize}
 
+\paragraph{Performance} there are several techniques for reducing the performance degradation due to branches:
+\begin{itemize}
+  \item \textbf{Freezing pipeline}: the pipe is stalled until the decision about the branch is know.
+  \item \textbf{Predict untaken}: Assume the branch is not taken, avoid any change in the pipe, undo all performed if the branch is taken. *
+  \item \textbf{Predict taken}: If the target address is know before the branch outcome, it may be possible to assume the branch as taken. *
+  \item \textbf{Delayes branch}: Filling the slot after the branch instruction (branch-delay slot) with instructions which have to be executed no matter the branch outcome. Is a compiler task. Less used nowadays.
+\end{itemize}
+* This thecniques can be speeded by the compiler which maximizes the chance for the processor to make the right prediction.\\
 
+\subsection{Exception}
+The execption are fundamental for system. The are a lot of possible causes:
+\begin{multicols}{2}
+  \begin{itemize}
+    \item I/O device request
+    \item System call by user program
+    \item Tracing instruction execution (like debug mode)
+    \item Breakpoint
+    \item Overflow and underflow
+    \item FP anomaly
+    \item Page fault
+    \item Misaligned memoery accesses
+    \item Undifined instruction
+    \item Hardware malfunction
+    \item Power failure
+  \end{itemize}
+\end{multicols}
+they can be calssified based on the type:
+\begin{itemize}
+  \item \textbf{Synchronous - Asynchronous}: Same position in code - External devices.
+  \item \textbf{User requested - Coerced}: Like procedures - Out of user control.
+  \item \textbf{User maskable - Non maskable}: Force hardware not to answer to exception requests.
+  \item \textbf{Within - Between instructions}: Generated by instruction itself.
+  \item \textbf{Resume - Terminate}: Terminate or execute something than resume.
+\end{itemize}
 
+There are some machine, called restatable, the are able to handle an exception, save the state, and restart without affecting the execution of the program. Nowadays all processors are restatable.\\
 
+\paragraph{Stopping execution} when and exception occurs, the pipeline must execute the following steps:
+\begin{itemize}
+  \item Force a trap instruction into the pipeline on the next IF stage.
+  \item Until the trap is taken, turn off all writes for the instruction that raised the execption and for all the following instructions in the pipeline.
+  \item When the exception-handling procedure receives control, it immediately saves the PC of the faulting instruction.
+\end{itemize}
+after the exception has been handled, special instructions return the machine from the exception by reloading the PC and restarting the instruction stream.\\
+A processor has precise execeptions if the pipeline can be stopped so that:
+\begin{itemize}
+  \item The instructions just before the faulting instruction are completed.
+  \item The instructions following the faulting instruction ca be restarted from scratch.
+\end{itemize}
+It could be really hard restarting after exception, but precise execption is a must for most architectures, at least for integer.
 
+\paragraph{Contemporary exception} for example we can have 2 different instruction LD that thrown an exeception during the MEM phase and a DADD that can generated an arthmetic exception during the EX phase. The handling could manage the first problem, and if its cause is removed, the second occurs. The situation can be different supposing that the DADD generate an error in the IF stage and the LD still in the MEM phase, this case generate before the DADD exception and then the other.\\
+The are multiple solution, a good one could be:
+\begin{itemize}
+  \item A status flag is associated to each instruction in the pipeline.
+  \item If an instruction causes an exception, the status flag is set.
+  \item If the status flag is set, the instruction can not perform any write operation.
+  \item When an instruction reaches the last stage, and its status flag is set, an exception is triggered.
+\end{itemize}
+In some cases machines have instructions that change the state before they are committed (those using autoincrement addressing modes). If one of these instructions is aborted because of an exception, it leaves the machine state altered. Implementig precise exceptions could be really tough.\\
+Instructions implicitly updating condition codes create complications:
+\begin{itemize}
+  \item Data Hazards
+  \item Save and restored in case of exception.
+  \item Hardening the compiler work to filling delay slots between writing conditions and branch.
+\end{itemize}
 
+\subsection{Multicycle Operations}
+Floating points units perform more complex operations than the integer ones. Forcing them to be executed in a single CLK means using a very slow clock or using really complex unit. The main solution is repeating the EX stage as many times as the instruction requires. An example for undestan the number can be viewed in this table below:
 
+\begin{center}
+  \begin{tabular}{ |c||c|c| }
+    \hline
+    \textbf{Functional Unit} & Latency & Init Interval\\
+    \hline
+    \textbf{Integer ALU} & 0 & 1\\
+    \hline
+    \textbf{Data Memory} & 1 & 1\\
+    \hline
+    \textbf{FP Add} & 3 & 1\\
+    \hline
+    \textbf{FP/Int Multiply} & 6 & 1\\
+    \hline
+    \textbf{FP/Int Divide} & 24 & 25\\
+    \hline
+  \end{tabular}
+\end{center}
+\textbf{Latency}: It is the number of cycles that should last between an instruction that produces a result and an instruction that uses the same result.\\
+\textbf{Initiation Interval}: It is the number of cycles that must elapse between issuing two operations of the same type to the same unit.\\
 
+\paragraph{Hazards} can be more frequent due to the different structure of the EX stage. This because:
+\begin{itemize}
+  \item Unpipelined divide unit, where several instructions could need it at the same time.
+  \item The instructions have varying running times, the number of the register writes required in a cycle can be larger that 1.
+\end{itemize}
+solving this problem with more writes ports is normally too expensive, the solution is forcing a structural hazard stalling the instructions in the ID stage, or stalling it before the MEM or WB stage. This kind of operations can introduce long period of stall. This introduce new type of hazards, like \textbf{RAW} (Read After Write), \textbf{WAW} (Write After Write) and  structural hazards involving the divide unit and the write port.\\
+A solution could be that, before issuing an instruction to the EX phase, check whether it is going to write on the same register of an instruction still in the EX stage. In this case, stall the new instruction. Of course guarantee the precise exception become really hard, the possible solutions are:
+\begin{itemize}
+  \item Accepting imprecise execeptions.
+  \item Fast, but imprecise operating mode, and slow, but precise one.
+  \item Buffering the results of each instruction until all the previously issued instructions have been completed.
+  \item Forcing the FP units to early determine whether an instruction can cause an exception, and issuing further instructions only when the previous ones are guaranteed not to cause an exception.
+\end{itemize}
+An alternative solution is like the MIPS R4000 that implements a 8 cycle pipelined processors. This means more forwarding, increased load delay slot and increased branch delay slot.
 
-
-
-
-
-
-
-
-
-
+\section{Instruction Level Parallelism}
 
 
 \bibliographystyle{abbrv}

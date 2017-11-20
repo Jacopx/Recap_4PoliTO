@@ -532,6 +532,142 @@ There is also another version of the 2 phase locking the STRICT version. In this
 The procedure is really fast. If a transaction keep in wait over timeout the lock manager resume it and returns a NOT OK ERROR, the requesting transaction may perform a rollback o request again the same resources.
 
 % Concurrency Control @ Pag. 57 = Hierarchical Locking
+\paragraph{Hierarchical Locking} locks tables at different granularity levels:
+\begin{itemize}
+  \item Table
+  \item Group of Tuples (fragment)
+  \item Single Tuple
+  \item Single Field in a Tuple
+\end{itemize}
+this is an extension of the traditional locking. It allows a transaction to request a lock at the appropriate level of the hierarchy and it is characterized by a large set of locking primitives.\\
+The \textbf{Locking Primitives} are:
+\begin{itemize}
+  \item \textbf{Shared Lock (SL)}
+  \item \textbf{eXclusive Lock (XL)}
+  \item \textbf{Intention of Shared Lock (ISL)}: It shows the intention of shared locking on an object which is in a lower node in the hierarchy.
+  \item \textbf{Intention of eXclusive Lock (IXL)}: Similar to ISL, but for exclusive lock.
+  \item \textbf{Shared lock and Intetion of eXclusive Lock (SIXL)}: Shared lock of the current object and intention of exclusive lock for one or more objects in a descandant node.
+\end{itemize}
+The behavior is reported in figure \ref{fig:hierlock}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/hierlock.png}
+  \caption{Hierarchical Behavior}
+  \label{fig:hierlock}
+\end{figure}
+
+The selection of lock granularity depends on the application type:
+\begin{itemize}
+  \item If it performs localized reads or updates of few objects (low lv - detailed ganularity).
+  \item If it performs massive reads or updates (high lv - rough granularity).
+\end{itemize}
+the effect of lock granularity:
+\begin{itemize}
+  \item If it is too coarse, reduces concurrency.
+  \item If it is too fine, it forces significant overhead on the lock manager.
+\end{itemize}
+
+The predicate locking addresses the ghost update of type b (insert) anomaly, for the 2PL a read operation is not in conflict with the insert of new tuple, they can't be locked in advance. The PredLock allows locking all data satisfying a given predicate.
+
+There are several isolation level:
+\begin{itemize}
+  \item \textbf{SERIALIZABLE}:
+  \begin{itemize}
+    \item Highest
+    \item PredLocking
+  \end{itemize}
+  \item \textbf{REPEATABLE READ}:
+  \begin{itemize}
+    \item Strict 2PL without PredLock
+    \item Read existing obj can be correctly repeated
+    \item No protection ghost update
+  \end{itemize}
+  \item \textbf{READ COMMITTED}:
+  \begin{itemize}
+    \item Not 2PL
+    \item The read lock is released as soon as the object is read
+    \item Reading intermediate states of a transaction is avoided (dirty reads)
+  \end{itemize}
+  \item \textbf{READ UNCOMMITTED}:
+  \begin{itemize}
+    \item Not 2PL
+    \item Data reads without acquiring the lock
+    \item Only allowed for read only transaction
+  \end{itemize}
+\end{itemize}
+
+\textbf{Deadlocks} can be frequent, the solution for solving it are implementing \textbf{timeout} the transaction waits for a given time, after the expiration of TO it receives a negative answer and it performs rollback. The time length could be LONG and SHORT (can be overloads the system). Other solution can be performed Pessimistic 2PL that acquire all locks before the transactions start (not always feasible) or the timestamp that put in wait mode only younger transaction. The deadlocks detection is performed using the wait graph, it could be expensive to build and mantain.
+
+\subsection{Reliability Management}
+It is responsible of the atomicity and durability ACID properties, it implements the following transactional commands:
+\begin{itemize}
+  \item BEGIN transaction (B)
+  \item COMMIT (C)
+  \item ROLLBACK (A, for Abort)
+\end{itemize}
+it also provides recovery primitives WARM and COLD RESTART.\\
+It manages the reliability of R/W requests by interacting with the buffer manager, it may generate new R/W requests for reliability purposes. It exploits the \textbf{log file} a persistent archive recording DBMS activity and is stored in a "stable" memory (not affected by failure, abstraction). It prepares data for performing recovery by means of the operations \textit{checkpoint} and \textit{dump}.\\
+\paragraph{Log file} is a sequential file written in stable memory that records transaction activities in chronological order. The record can be related to a transaction or system, they are saved interleaved between different transaction.\\
+The transaction log are written in this way:
+\begin{itemize}
+  \item BEGIN B(T)
+  \item COMMIT C(T)
+  \item ABORT A(T)
+  \item INSERT I(T, O, AS)
+  \item DELETE D(T, O, BS)
+  \item UPDATE U(T, O, BS, AS)
+\end{itemize}
+where O represent the written object, AS is the After State (state of object O after modification) and BS is the Before State.\\
+
+\textbf{Checkpoint} are periodically operation requested by the RM to the BM, it allows a faster recovery process. During the checkpoint, the DBMS writes data on disk for all completed transactions.\\
+The flow of the checkpoint is:
+\begin{enumerate}
+  \item All the TIDs of all active transaction are recorded
+  \begin{itemize}
+    \item After the checkpoint start, no transaction can commit until the checkpoint ends.
+  \end{itemize}
+  \item The pages of concluded (C or A) transaction are synchronously written on disk.
+  \begin{itemize}
+    \item By means of the froce primitive.
+  \end{itemize}
+  \item A the end of step 2, a chekcpoint record is synchronously written on the log.
+  \begin{itemize}
+    \item Contains the set of active transactions.
+    \item It is written by means of the focre primitive.
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Dump} is a complete copy of the database, typically performed when the system is offline, stored in stabel memory, may be incremental. At the end a dump record is written in the log.\\
+
+The log is designed to allow recovery in presence of failure, WAL or Commit precedence. The WAL (Write Ahead Log, SYNC) the BS of data in a log record is written in stable memory vefore database data is written on disk, during recovery it will allows UNDO operation. The COMMIT PRECEDENCE (ASYNC) solution write the AS in a stable memory before commit, this will allows the execution of redo operations.\\
+
+\paragraph{Recovery Management} there are two types of failures, the SYSTEM caused by software problem or power supply interruption that are causing losing in the main memoery content (buffer) but not on the disk. Or the MEDIA failure, caused by failure of devices managing secondary memory, this will lose the DB content on disk but not the log.\\
+When a failure occurs the system is stopped, the type of recovery to be started depends on the failure type: SYS=WARM and MEDIA=COLD. When the recovery ends the system becomes again available to transactions.\\
+The \textbf{WARM RESTART} is one of the solution for the recovery procedure:
+\begin{itemize}
+  \item All the transaction completed before the checkpoint not need a recovery action.
+  \item The transaction which committed, but for which some write on disk are not already performed REDO is needed.
+  \item Active transaction at the time of failure (not committed) UNDO is needed.
+\end{itemize}
+the checkpoint is not needed to enable recovery, it only provides faster restart, because, without it, the entire log until the last dump needs to be read. This solution reads backwards the log to detecs action which should be undo or redo, then star to read forward the log and perform all the actions.\\
+The \textbf{COLD RESTART} is the second solution for recovery, it is performed when a portion of the database on disk get a failure. The main steps are:
+\begin{enumerate}
+  \item Access the last dump to restore the damaged portion of the DB on disk.
+  \item Starting from the last dump record, read the log forward and redo all actions on the database and transaction commit/rollback.
+  \item Perform a warm restart.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \bibliographystyle{abbrv}
 \bibliography{simple}
