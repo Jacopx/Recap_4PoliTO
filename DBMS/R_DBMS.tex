@@ -16,6 +16,9 @@
 \usepackage{float}
 \usepackage{amssymb}
 \usepackage{ifsym}
+\usepackage{listings}
+
+\lstset{language=SQL}
 % Misure Documento
 \geometry{ a4paper, total={170mm,257mm},left=35mm, right=35mm, top=35mm, bottom=35mm }
 
@@ -656,15 +659,235 @@ The \textbf{COLD RESTART} is the second solution for recovery, it is performed w
   \item Perform a warm restart.
 \end{enumerate}
 
+\subsection{Triggers}
+The traditional DBMS is passive, query and updates are explicitly requested by users, the knowledge of processes operating on data is typically embedded into applications. The active DBMS instead have a Reactivity service provided that monitors specific database vents and triggers actions in response. Reactivity is provided by automatically executing rules, they can be:
+\begin{itemize}
+  \item Event: Modification operation.
+  \item Condition: Predicate on the DB state, cond==true: action==execute.
+  \item Action: Sequence of SQL instructions or application procedure.
+\end{itemize}
+The rule engine is the component in charge of tracking events and executing rules when appropriate. The execution of the rules is interleaved with traditional transactions.\\
+SQL provides instructions for defining triggers (CREATE TRIGGER) the syntax and semantics are covered in the SQL3 standard. The structure is divided in 3 main part:
+\begin{itemize}
+  \item WHEN: the events takes place.
+  \item IF: the condition is true.
+  \item THEN: the action is executed.
+\end{itemize}
+there are also some execution modes:
+\begin{itemize}
+  \item Immediate: before or after the triggering statement.
+  \item Deferred: executed immediately before commit. (Not commercial)
+\end{itemize}
+and the granularity:
+\begin{itemize}
+  \item Tuple (or row level): One separate exec of the trigger \textit{for each tuple} affected by the triggering statement.
+  \item Statement: One single trigger execution \textit{for all tuples} affected by the triggering statement.
+\end{itemize}
+
+\paragraph{Oracle Triggers} % Triggers @ Pag. 17 - Oracle Triggers
+The base structure of a trigger is:
+
+\begin{lstlisting}[frame=single]
+  CREATE TRIGGER TriggerName
+  Mode Event {OR Event }
+  ON TargetTable
+  [[ REFERENCING ReferenceName]
+  FOR EACH ROW
+  [WHEN Predicate]]
+  PL/SQL Block
+\end{lstlisting}
+It can be divided in:
+\begin{itemize}
+  \item Mode is BEFORE or AFTER
+  \item Event ON TargetTable is:
+  \begin{itemize}
+    \item INSERT
+    \item DELETE
+    \item UPDATE
+  \end{itemize}
+  \item FOR EACH ROW specifies row level execution semantics.
+  \begin{itemize}
+    \item OLD.ColName and NEW.ColName are used for accessing to the two types of data.
+  \end{itemize}
+  \item WHEN is used only for row level execution.
+\end{itemize}
+
+The execution algorithm is:
+\begin{enumerate}
+  \item Before statement triggers are executed.
+  \item For each tuple in \textit{TargetTable} affected by the triggering statement.
+  \begin{enumerate}
+    \item Before row triggers are executed.
+    \item The triggering statement is executed + Integrity constraints are checked on Tuples.
+    \item After row triggers are executed.
+  \end{enumerate}
+  \item Integrity constraints on tables are checked.
+  \item After statement triggers are executed.
+\end{enumerate}
+the execution order for triggers with the same event, mode and granularity is not specified and it could be source of non determinism. If an error occurs the roll back of the triggers operation is performed. The triggers could also called in cascade, the maximum is defined by the user. The \textit{mutating table} is the table modified by the statement triggering the trigger. The MT cannot be accessed in row level triggers, may only be accessed in statement triggers (limited access only on Oracle application).
 
 
+\section{Data Warehouses}
+\subsection{Introduction}
+The database was delevoped for giving a service to the final users, like university, flight companies and other stuff. During the 80's they have understand that this system could be also used for made analisys over data. This analisys could be usefull for improving decision, forecast, cost reduction and other stuff.\\
+The goal of Business Intelligence is to provides support to strategic decision, trasforming company data inyo actionable information. This request requires of course an appropriate hardware and software infrastructure.\\
+The data ware house is a database devoted to decision support, which is kept separated from company operational databases. The data which is:
+\begin{itemize}
+  \item Devoted to specific subject
+  \item Integrated and Inconsistent
+  \item \textbf{Time Dependent}, non volatile
+\end{itemize}
+all data related to the timestamp are bigger than the other.\\
+The data are kept separated for multiple questions:
+\begin{itemize}
+  \item \textbf{Performance}: Complex queries reduce performance. Data may varies during operation, ecc... The system could be developed for doing some operations but the warehousing use the system in a different way.
+  \item \textbf{Data Management}: The data for the service could be different from the data needed for the analytics. (ex. Data addresses changing). There could be also inconsistency problem.
+\end{itemize}
+One of the rappresentation solution proposed is the (hyper)cube with three or more dimensions (figure \ref{fig:hypercube}).
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/hypercube.png}
+  \caption{Hypercube rappresentation}
+  \label{fig:hypercube}
+\end{figure}
+In this solution the cross of the three axes could be our important data, 3 like number of Milk sales in 2-3-2000 by the SupShop or the total amount in \$ ecc... The empty cells rappresent an inconsistency data, product not sales in that day.\\
+The hypercube is a rappresentation based on the relational rappresentation, the STAR MODEL. This model have:
+\begin{itemize}
+  \item Numerical measures: Value stored in the fact table. (ex. \#sales)
+  \item Dimensions: Describe the context of each measure in the fact table.
+\end{itemize}
+in figure \ref{fig:star} the Dimensions are \textit{Shop, Date and Product} and the fact is the \textit{Sale}.\\
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/star.png}
+  \caption{Star Model}
+  \label{fig:star}
+\end{figure}
+An important analisys is related to the dimensions of the data warehouse, supposing: to store 2 years of data, for 300 shops for 3000 product sold every day in every shop, the fact table reach the dimensions of 660 milions of row (around 20GB of data).\\
+The main operations over this kind of data is the computation with aggregated functions, with more complex operand (moving average, top ten, ecc...) or applications of data mining techniques. This important evaluation are unusefull if the data is presentate bad.
+\paragraph{Architecture} the system is build on several block:
+\begin{itemize}
+  \item Data Sources: External source, the DB.
+  \item Data Warehouse: The big system.
+  \item Data Marts: Smaller data warehouse related only to a single departement.
+  \item OLAP servers: Multi dimensional data rappresentation.
+  \item Metadata: Schemas information.
+\end{itemize}
+The data warehouse contains all the information on the company business and it requires a long time to be developed, the data mart are departimental information subset focused on a given subject, the implementation is faster than the warehouses, they requires a careful design. The data mart could be dependent (fed by the company warehouse) or independent (fe ddirectly by the sources). The most know solutions are:
+\begin{itemize}
+  \item \textbf{ROLAP}: (Relational OLAP)
+  \begin{itemize}
+    \item Extended relational DBMS (not sparse).
+    \item SQL extension for aggrgate computation.
+    \item Specialized access methods which implement efficient OLAP data access.
+  \end{itemize}
+  \item \textbf{MOLAP}: (Multidimensional OLAP)
+  \begin{itemize}
+    \item Data rappresented in multidimensional matrix (sparse data required compression).
+  \end{itemize}
+  \item \textbf{HOLAP}: (Hybrid OLAP) use MOLAP for fast and user stats and ROLAP for high detailed data.
+\end{itemize}
+There are 3 different solution for the system architecture, 1,2 and 3 level.\\
+The first it better to be avoided, is not a good choice to have DBMS and DW on the same side. The other two are, the 2 level rappresented in figure \ref{fig:2lv}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/2lv.png}
+  \caption{Two Level Architecture}
+  \label{fig:2lv}
+\end{figure}
+These solution split the data and the DW, the only problem is data as soon as the data is added an "On the fly" data transformation is requires. Instead, in the three level solution (figure \ref{fig:3lv}), the problem is avoided introducing a staging area used for managing and cleaning operation.
 
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/3lv.png}
+  \caption{Three Level Architecture}
+  \label{fig:3lv}
+\end{figure}
 
+\paragraph{ETL} Extraction, Transformation, Loading this process prepares data to be loaded into the data warehouse, is usually performed during the first load of the DW or during periodical DW refresh. The part are:
+\begin{itemize}
+  \item \textbf{Data Extraction}: Data acquisition from sources.
+  \item \textbf{Data Cleaning}: Techniques for improving data quality (correctness and consistency).
+  \item \textbf{Data Transformation}: Data conversion from operational format to DW format.
+  \item \textbf{Data Loading}: Update propagation to the data warehouse.
+\end{itemize}
 
+\paragraph{Metadata} these are data about data. There are different types:
+\begin{itemize}
+  \item Data transformation and loading: Describe data sources and needed transformation operations.
+  \item Data management: Describe the structure of the data in the DW, also for materialized view.
+  \item Query management: Data on query structure and to monitor query execution (execution plan, memory and CPU usage).
+\end{itemize}
 
+\subsection{Design}
+Using this type of structures involve some risks. Often the user think that data warehousing can solve the company's problems but is not like this, the behavior of this system is to provide that to solve in a better way the problem, not to solve problem. Also the source data could generate problems, incomplete or unreliable, also non itegrated or non optimized business processes. Good idea could be "politically correct" and developing a easy-to-use system.\\
+\paragraph{Approach} there are two types of development:
+\begin{itemize}
+  \item \textbf{Top-Down}: Global and complete representation, complex and expensive.
+  \item \textbf{Bottom-Up} incremental growth, separately focused on specific business areas.
+\end{itemize}
+in general the system follow a common flow, the Kimball lifecycle is a good rappresentation.\\
+The data mart design:
+\begin{itemize}
+  \item Operational source schemas
+  \item Reconciled schema: Not easy do design.
+  \item User Requirements
+  \item Fact schema: non standard rappresentation, usefull for developing.
+  \item Feeding: Define script for saving data.
+  \item Physical Design: Good system for improving performance.
+\end{itemize}
 
+\paragraph{Requirement Analysis} the first phase of designing is the analysis of the whole problem. We need to know:
+\begin{itemize}
+  \item Collects: The data needed in the data mart and the constraints related to previous information system.
+  \item Sources: Business user and operational system administrator.
+  \item Select: Is good to strat from the most important sector of the company and feeded by few reliable sources.
+\end{itemize}
+The application requirements, what we need to keep in the data mart, are different:
+\begin{itemize}
+  \item Description of relevant facts: Could be sales, phone call, investements, ecc... With its usefull information (dimension). Granularity and time span.
+  \item Workload: From already existent report generate new report. Other stuff produced in natural language.
+\end{itemize}
+There are also some structural requirements:
+\begin{itemize}
+  \item Feeding periodicity: Different from realtime or weekly reports.
+  \item Available space
+  \item System architecture: 1, 2 or 3 level.
+  \item Deployment: Start up and training.
+\end{itemize}
 
+\paragraph{Conceptual Design} there isn't a standard model for this of kind of design, the dimensional fact model is proposed from Golfarelli e Rizzi in their book. This model define, for a given fact, dimensions, hierarchies and measures. The part are, figure \ref{fig:conce}:
+\begin{itemize}
+  \item \textbf{Fact}: It evolvs in time modelling a relevant events (ex. sales).
+  \item \textbf{Dimension}: Describes the coordinate of the fact (ex. sales date, shop, ecc...).
+  \item \textbf{Measure}: Describes a numerical property of the fact (ex. number of sold unit).
+\end{itemize}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/conce.png}
+  \caption{Conceptual Design}
+  \label{fig:conce}
+\end{figure}
+The hierarchy is the collection of all associated attributes of each dimensions. The attributes describe the dimension at different abstraction levels, this hierarchy represent a generalization relationship among subset of attributes in a dimension. Each edge represent a functional dependency 1:n. An example of hierarchy is: $Shop \rightarrow ShopCity \rightarrow Region \rightarrow Country$.\\
+There some advanced features in these model:
+\begin{itemize}
+  \item Non-additivity: Not aggregatable over sum.
+  \item Optional edge
+  \item Convergence: Two different hierarchy converge at the sime point at the end of its.
+  \item Optional dimension: Not always existent dimension.
+  \item Descriptive attribute: Not aggregatable for computation, only descriptive.
+\end{itemize}
+there other stuff likes:
+\begin{itemize}
+  \item Multiple Edge: Relation n:n instead of 1:n.
+  \item Shared Hierarchy: Different role from the same subset of data.
+\end{itemize}
 
+An interesting situation could be when the rappresentation of a fact without measure, is called factless fact schema. It can occur when you need to record the occurrence of an event, count the number of occurrence or representing events not occurred.
+
+\paragraph{Aggregation} computes measures with a coarser (less fine) granularity than those in the original fact schema. The reduction is obtained climbing the hierarchy. The standard operator are SUM, MIN, MAX, AVG, COUNT.\\
+The measure can be additive, not additive (by SUM), not aggregable. Measure can be of 3 type:
+\begin{itemize}
+  \item \textbf{Stream}: Evaluable at the end of a time period, aggragable by all operators (ex. sold quantity).
+  \item \textbf{Level}: Evaluated at given time (snapshot), not additive along the time dimension (ex. Balance).
+  \item \textbf{Unit}: Evaluated at a given time and expressed in relative terms, not additive (ex. Unit price product).
+\end{itemize}
+When is possible to compute aggregate from view of already aggregated value these operators are called \textbf{distributive}. Not all operators are distributive, AVG is \textbf{algebraic}, these types can compute higher level aggregations from more detailed data only when supplementary support measures are available. There is also another type called \textbf{Olistic} that can't compute aggregate from more detailed data.
 
 
 
