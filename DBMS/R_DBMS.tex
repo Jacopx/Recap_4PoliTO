@@ -978,10 +978,72 @@ The measure can be additive, not additive (by SUM), not aggregable. Measure can 
 \end{itemize}
 When is possible to compute aggregate from view of already aggregated value these operators are called \textbf{distributive}. Not all operators are distributive, AVG is \textbf{algebraic}, these types can compute higher level aggregations from more detailed data only when supplementary support measures are available. There is also another type called \textbf{Olistic} that can't compute aggregate from more detailed data.
 
+\paragraph{Time Representation} the data modification over time is explicitly represented by the event (ex. time of buying, timestamp measurement). Also dimension could be change, the number of professors, the number of stores, ecc... The only difference is related to the speed of change, this is named \textit{slowly changing dimension}.\\
+The first (\textbf{TYPE I}) solution of this problem is to overwrite the data with the current value, this is used when the change is not important for the system like solving an error in a surname. This project the new situation over the past events. The second (\textbf{TYPE II}) solution is to directly correlate the events with the corresponding dimension value. This could be achived partitioning the data and creating a instance of the dimension. For example, \textit{Purchases performed by \underline{married} Mario Rossi} and \textit{Purchases performed by \underline{unmarried} Mario Rossi}.
+The last solution (\textbf{TYPE III}) is similar to the type II because it create a new instance of the dimension, but it introduce a validity time stamp (start/end) for the dimension and a new attribute which allows to identify the root of the all dimension. The main utility of the last type is the projection to the future or to the past of and identity.\\
 
+For example:\\
+\textit{If we have a geo sub-division like nord-ovest and we compute the sels 2016 of this area, if we move one store to the area nord-center the computation of the sels of 2016 get a different results. Supposing to calculate the sels of the 2017, if we want to look at the results of the old nord-ovest configuration, but with the new data, the only solution is to use the TYPE III representation. }\\
 
+The third solution must be used only if the system really need this because could be really coplicated to be mantained.
 
-\bibliographystyle{abbrv}
-\bibliography{simple}
+\paragraph{Other} the workload must be defined during the design phase, this can depends on user number, complexity and dimension. Probably a phase of tuning will be necessary for improving the system work.\\
+The estimation of data volume is necessary due to a correct development of the system. Everything must be considered, from indicies, to materialized view, to time span, attribute length, ecc.. This because this type of structure everything could become really big. Difficulties on volume estimation come from sparsity, because when we reducing granularity, with a high sparse cube, the reduction factor could be greater that expected.
+
+\paragraph{Logical Design} this phase start from the relational model (ROLAP):
+\begin{itemize}
+  \item Conceptual fact schema
+  \item Workload
+  \item Data Volume
+  \item System Constraints
+\end{itemize}
+Is a litle bit different from the traditional logical design because the data redundancy (lose of normalization) is acceptable due to a performance improve. Is a good idea to ad redundancy only in the dimension table and not in the fact table, because the number of records is really really bigger in the second one.
+The star schema (figure \ref{fig:bigstar}) is composed by:
+\begin{itemize}
+  \item Dimensions:
+  \begin{itemize}
+    \item One table for each dimension
+    \item Surrogate primary key (counter)
+    \item It contains all dimension attributes
+    \item Not explicit hierachies respect ROLAP schema
+    \item Totaly denormalized representation
+  \end{itemize}
+  \item Facts
+  \begin{itemize}
+    \item One fact table for each fact schema
+    \item Primary key composed by foreign keys of all dimensions
+    \item Measures are attributes of the fact table
+  \end{itemize}
+\end{itemize}
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/bigstar.png}
+  \caption{Star Schema}
+  \label{fig:bigstar}
+\end{figure}
+
+Directly from the star schema we can derive the \textbf{Snowflake} schema that introduce a bit of normalization to reduce the size of the dimension table. This representation is created spliting in two or more table one dimension table, an example in figure derived directly from the previous star schema.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/snowflake.png}
+  \caption{Snowflake Schema}
+  \label{fig:snowflake}
+\end{figure}
+
+The main advantage are related to some space optimization, the disadvantage is that this solution need one or more further join. Normally the star schema is preferred. The only cases could be when one part of one dimension is shared above more dimension.
+
+\textbf{Multiple edges} needs an appropriate implementation, there are two solution:
+\begin{itemize}
+  \item \textbf{Bridge Table}: similar to classic relational schema add a table between the two tables linked by the edge to "merge" the cases. This solution allow to adds usefull attributes, like weight for computing specific calculations (ex. author income in a not equaly divison book).
+  \item \textbf{Push Down}: Add 2 keys to the fact table. The weight in this case is wired in the fact table. The PD add problem related to increase of redundancy, the only advantages is a minor number of join required.  NOT GOOD SOLUTION.
+\end{itemize}
+
+In some cases could be necessary to create a dimension with only one attribute for a dimension, this is named \textbf{degenerate dimension}. There are two options to overcome the problem:
+\begin{itemize}
+  \item Attribute directly integrate into the fact table (only attribute with very small size).
+  \item Junk dimension: A single dimension containing several degenerate dimensions with no functional dependencies among them.
+\end{itemize}
+
+\paragraph{Materialized Views} % 2-DWprog-EN-2x @ Pag. 47
 
 \end{document}
