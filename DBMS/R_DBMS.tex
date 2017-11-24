@@ -726,6 +726,95 @@ The execution algorithm is:
 \end{enumerate}
 the execution order for triggers with the same event, mode and granularity is not specified and it could be source of non determinism. If an error occurs the roll back of the triggers operation is performed. The triggers could also called in cascade, the maximum is defined by the user. The \textit{mutating table} is the table modified by the statement triggering the trigger. The MT cannot be accessed in row level triggers, may only be accessed in statement triggers (limited access only on Oracle application).
 
+\subsection{Distributed Architectures}
+A possible architectural implementations is using a distributed system, the main advantages are related to performance improvement, increased availability and stronger reliability. Of course the classic client/server mechanicsm is much easier to be implemented and mantained. The distributed one are able to collaborate and are autonomous, the only problem is to guaranteeing the ACID property that requires more complex techniques.\\
+\paragraph{Client/Server} there are two main types of structure, the first is the \textbf{2-TIER}:
+\begin{itemize}
+  \item \textit{n} clients: With some application logic.
+  \item DBMS Server: Provides access to data.
+\end{itemize}
+the \textbf{3-TIER} solution istead:
+\begin{itemize}
+  \item \textit{n} clients: Browser.
+  \item Application server: Business logic and also web server.
+  \item DBMS Server: Provides access to data.
+\end{itemize}
+
+\paragraph{Distributed} system are accessed by many user at the time. Each user can be also access more than one DBMS server. Each server need to have a local autonomy, each manages its local data, concurrency control, recovery, ecc... The localization instead could be the most important difference respect c/s system, this can perform a geographical distribution. Also the data availability, less probability off total block, but more in terms of local block. Least but not last, the scalability.
+
+\paragraph{Design} given a relation R, a data fragment is a subset of R in terms of
+\begin{itemize}
+  \item Tuples:Horizontal = Not overlapped, union of table possible.
+  \item Schema:Vertical = Overlapped on PK, join of table.
+  \item Both:Mixed
+\end{itemize}
+The distributed system are based on data fragmentation over different servers. THe allocation schema describes how fragments are stored on different server nodes, it could be redundant or not redundatan if some fragments are replicated or not on different servers. When there are replication the data availability increase, but also the complexity, synchronization is needed.\\
+The trasparency levels explains how data distribution are visible by the query programmer, the could be invisible, in this case programmer will call only one table without knowing the fragment division. Another option is knowing the existence of fragments but not their allocation, in this case each fragment not to be used like a different table.
+
+\paragraph{Classification} the client is only responsible to request the execution of the query, the taks to redistributing the computation is demanded to the DBMS server. The transaction could be classificated:
+\begin{itemize}
+  \item \textbf{Remote Request}:
+  \begin{itemize}
+    \item Read only request
+    \item Single remote server
+  \end{itemize}
+  \item \textbf{Remote Transaction}:
+  \begin{itemize}
+    \item Any SQL command
+    \item Single remote server
+  \end{itemize}
+  \item \textbf{Distributed Transaction}:
+  \begin{itemize}
+    \item Any SQL command
+    \item Each SQL statement is addressed to one single server
+    \item Global atomicity is needed
+  \end{itemize}
+  \item \textbf{Distributed Request}:
+  \begin{itemize}
+    \item Each SQL command may refer to data on different servers
+    \item Distributed optimization is needed
+    \item Fragmentation transparency is in this class only
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Technology} using more system requires synchronization. To guarantee the ACID property some techniques need to be implemented:
+\begin{itemize}
+  \item Atomicity: 2 phase commit.
+  \item Consistency: Enforced only locally.
+  \item Isolation: Strict 2PL and 2 Phase Commit.
+  \item Durability: Extension of local procedures to manage atomicity in case of failure.
+\end{itemize}
+The Distributed Query Optimization have the tasks to split in different sub-queries a single query execution request. After fast execution plan definition, the DBMS, start the different operations and coordinates everything fot a correct information exchange.\\
+The \textbf{2-Phase Commit} protocol has the objective to coordinate the conclusion of a distributed transaction. The behaviour is similar to a wedding. There is one coordinator, the Transaction Manager (like priest) and several DBMS servers which take part to the transaction, Resource Manager (like the couple). There also 2 new logs, the TM add some information related to the protocol start/end, the RM add the ready log to synchronize the commit with the other system. The procedure is similar to the window-networks protocol, with packets and ack. Figure \ref{fig:2pc} schematize the flow.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/2pc.png}
+  \caption{2-Phase Commit}
+  \label{fig:2pc}
+\end{figure}
+
+The 2 phases of the coordinator are:
+\begin{itemize}
+  \item \textbf{I Phase}:
+  \begin{itemize}
+    \item Prepare (Outgoing)
+    \item Ready (Incoming)
+  \end{itemize}
+  \item \textbf{II Phase}:
+  \begin{itemize}
+    \item Global Decision (Outgoing)
+  \end{itemize}
+\end{itemize}
+
+Also the recovery phase is a little bit modififed, the warm restart will read the READY log and asked to the TM how to procede to the restore (Remote Recovery Request). In case of the failure of the coordinator:
+\begin{itemize}
+  \item Last Record=PREPARE: A global abort is written in log and send to all partecipants.
+  \item Last Record=GLOBAL DECISION: Repeat the phase II.
+\end{itemize}
+
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
 
 \section{Data Warehouses}
 \subsection{Introduction}
