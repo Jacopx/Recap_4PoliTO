@@ -477,9 +477,61 @@ A solution could be that, before issuing an instruction to the EX phase, check w
 An alternative solution is like the MIPS R4000 that implements a 8 cycle pipelined processors. This means more forwarding, increased load delay slot and increased branch delay slot.
 
 \section{Instruction Level Parallelism}
+The pipelines exploit the parallelism existing among instructions, which allows their execution in parallel. The highest the amount of ILP that can be found, the better the performance of the pipeline. There are two kind of approach:
+\begin{itemize}
+  \item Static: Depending on the software (i.e compiler). Used in embedded system.
+  \item Dynamic: depending on the hardware to locate parallelism. Used in desktop and server.
+\end{itemize}
 
+The basic block is the group of instructions belonging to the same block, it means no branches in (except entry) and no branches out (excepts exit). The basic block is opmizable by the compiler by a little rescheduling. For example if we need to compute $a=b+c\\d+e-f$ on solution could be the one in figure \ref{fig:stall}:
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/stall.png}
+  \caption{First execution order}
+  \label{fig:stall}
+\end{figure}
+that requires 14 clocks cycles. In figure \ref{fig:stall2} a better solution is implemented, this rescheduling requires only 12 clock cycles.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/stall2.png}
+  \caption{Second execution order}
+  \label{fig:stall2}
+\end{figure}
+ For typical MIPS program the size of a basic block is between 4 and 7 instructions. Since these instructions are likely to be dependent one from the other, the amount of parallelism existing within a basic block is normally rather small.\\
+ COnsidering a loop any iteration of a loop could be independent on the others, so they can be overlapped. There are two ways for exploting the loop-level parallelism:
+ \begin{itemize}
+   \item Loop unrolling (static or dinamyc)
+   \item SIMD
+ \end{itemize}
 
-\bibliographystyle{abbrv}
-\bibliography{simple}
+The first solution explicitly replicate the loop body in multiple times like in figure \ref{fig:unrolling}.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/unrolling.png}
+  \caption{Loop unrolling}
+  \label{fig:unrolling}
+\end{figure}
+The considerations are:
+\begin{itemize}
+  \item[\textbf{+}] Reduced overhead due to the iteration control.
+  \item[\textbf{+}] Wider body increase the chance for the compiler to exploit rescheduling to eliminate stalls.
+  \item[\textbf{-}] Size code increased.
+\end{itemize}
+
+The SIMD techniques it can be exploited in:
+\begin{itemize}
+  \item Vector processors: A vector instruction operates on a set of data, instead of on a scalar data (as normal instructions).
+  \item GPUs: Parallel acting over multiple data.
+\end{itemize}
+
+In both cases is necessary to evaluate the dependencies, if two instructions are not dependent, they can be executes in parallel without any stall. If they are not, they have yo be executed in order (or partly overlapped). There are 3 kind of dependencies: data, name and control.\\
+An instruction \textit{i} is \textbf{DATA} dependent on instruction \textit{j}, if \textit{i} produces a result that is used by instruction \textit{j}, or if j is dependent on instruction \textit{k}, and \textit{k} is dependent on instruction \textit{i}.\\
+Detecting dependencies involving registers is easy. Detecting dependencies involving memory cells is much more difficult, because accesses to the same cell can look very different. Using a static techniques force the compiler to adopt a conservative approch, assuming that anu load instruction refers to the same cell of the previous store. This kind of dependencies can be only detected at the tun time, when the addresses are known.\\
+A \textbf{NAME} dependencies occurs when two instructions refer to the same register or memory location (name) but there is no flow of data associated to the name. They can be of 2 types:
+\begin{itemize}
+  \item \textit{Antidependence}: Instruction j writes a register or memory location that instruction i reads, and instruction i is executed first.
+  \item \textit{Output dependence}: Both instruction i and j write the same register or memory location.
+\end{itemize}
+The name dependencies do not prevent from reordering involved instructions, provided that we change the register used by one of the two instructions, it can be exploited by compiler (statically) or by the processor (dynamically). A similar method can be implemented to solve name dependencies involving memory locations.
 
 \end{document}

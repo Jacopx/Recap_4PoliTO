@@ -1044,6 +1044,146 @@ In some cases could be necessary to create a dimension with only one attribute f
   \item Junk dimension: A single dimension containing several degenerate dimensions with no functional dependencies among them.
 \end{itemize}
 
-\paragraph{Materialized Views} % 2-DWprog-EN-2x @ Pag. 47
+\paragraph{Materialized Views} respect the view, the materialized ones, are table from all aspects are they aren't computed at the time the view is requested. The materialized implements an already aggregated result of a previous interrogation of the fact table. They are used for improve the performance during the computation of query less detailed. An example in figure \ref{fig:matview}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/matview.png}
+  \caption{Example of materialized view}
+  \label{fig:matview}
+\end{figure}
+The views are SQL statement,  generated starting from base tables or view with higher granularity. Considering that this views can takes up a lot of space is better to used their only when the are really usefull. A good advice is to develop views that are used from a lot of interrogation. Of course, generating a view that include a lot of aggreation attributes can be to big to be mantained, also the space occupied could be to much. In general the idea is to minimize this values:
+\begin{itemize}
+  \item Disk space
+  \item Update window
+  \item Query cost
+\end{itemize}
+
+During the physical development of a data warehouse is important to manage the workload. The queries are computed with a lot of aggregation level and they will probably access to an huge part of each table involved. One of the main advantage of this system is the they are read-only and they don't require to be modififed. A periodical scheduled refresh is needed to keep the data valid, also indicies and other stuff.\\
+Respect the OLTP this type of system use different index types like bitmap, join, bitmapped join index, ecc...\\
+An important phase of the development is the tuning where, looking at the real utilization behaviour the system if fitted to improve performance during real-life application. This phase is also used in case of structural changes. In more complex environment the parallelism become important, it can really increase the performance.\\
+The index selection is performed on:
+\begin{itemize}
+  \item Attributes frequently involved in selection predicates.
+  \item High cardinality domain, with B-tree index.
+  \item Low cardinality domain, with bitmap index.
+\end{itemize}
+Indexing only foreing keys in the fact table is rarely appropriate because the index could become big like the table reducing the real advantages of this stuff.
+
+\paragraph{ETL} the Extraction, Transformation and Loading phases are fundamental to prepare data to be loaded into the warehouse. Is performed at the first DW load and during periodical refresh, it's involve:
+\begin{itemize}
+  \item Data extraction from OLTP or external sources.
+  \item Data Cleaning.
+  \item Data transformation.
+  \item Data loading.
+\end{itemize}
+The process is eased by using the staging area. In general this phase is different if the system is during the first load or if is a periodical update/\\
+The \textbf{extraction} acquire the data from the sources. If is the first time performa a \textit{static} extraction grabbing snapshot of operational data. If is an update, it will use an \textit{incremental} solution to extracting data since the last update only. In case of multiple sources is important to choose the best one. Of course is important to analyze how the data is collected:
+\begin{itemize}
+  \item \textbf{Historical}: All modification, with a datastamp, are stored for a given time in the OLTP system (bank transaction, exam, ecc...).
+  \item \textbf{Partly Historical}: Not all the modification are stored, only a limited number of state.
+  \item \textbf{Trasient}: Only the current data state is keeps on the OLTP.
+\end{itemize}
+Of course the real challenge is over trasient data.\\
+The incremental extraction comparing 2 snapshot of the system it's a mess. One solution to this problem is to be \textbf{assisted by the application}, this means force the OLTP system to keep track of modification, on the selected table, in dedicated table. This means doubling the application load because every insert or update must be performed 2 times. This is the last solution, just used only on legacy system, because require a modification directly in the applications that perform the modification.\\
+The best solution is using the \textbf{log}, this is written in any case for recovery pourpose, this means that using the log not require unnecessary data operations. Both operations are performed at the same time that the main transaction is done, are immediate.\\
+Another possibile solution is using the \textbf{triggers}, there is the duplication like the application support, but this solution not require editing the single application, but editing only the DBMS.\\
+The last solution is using the \textbf{timestamp}. The system need a new attribute for the \textit{last modification time}. During the data extraction, first the system will find the first \textit{"not yet added"} record, and then will start to scan the table from this point. This is the only deferred extraction and it means possible lose of intermediate state if the data is transient. A fast comparison over the various techniques in figure \ref{fig:extraction}.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/extraction.png}
+  \caption{Comparison of extraction techniques}
+  \label{fig:extraction}
+\end{figure}
+
+Another important phase of the ETL is the \textbf{cleaning}. That phase have the task to clean all the data problem related to entry errors, different field formats and for evolving business pratices. This means remove duplicate, fill missing data, correct wrong use of field, remove impossibile or wrong data and all the other inconsistency correlated. That problem can be solved using \textbf{data dictionary} used for entry or format errors. This of course can be performed only over data domains with limited cardinality. Another solution could be the \textbf{approximate fusion}, these techniques tries to find duplicates or similar, with a defined criterion,  and perform operation to fix it when is possibile, otherwise the data must be purge again manually.\\
+
+The \textbf{trasformation} required data conversion from the operational to the warehouse format. The phase is divide in two part:
+\begin{itemize}
+  \item From operational to the reconciled data in the staging area.
+  \begin{itemize}
+    \item Conversion
+    \item Matching
+    \item Data selection
+  \end{itemize}
+  \item From reconcilied to the data warehouse.
+  \begin{itemize}
+    \item Surrogate keys generation
+    \item Aggregation computation (view, fact table, indices, ecc...)
+  \end{itemize}
+\end{itemize}
+the dimesion table loading is represented in figure \ref{fig:dimload} and the fact table loading in figure \ref{fig:factload}.
+
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/dimload.png}
+  \caption{Dimension table loading}
+  \label{fig:dimload}
+\end{figure}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/factload.png}
+  \caption{Fact table loading}
+  \label{fig:factload}
+\end{figure}
+
+\subsection{Data Analisys} % 3-DWquery-EN-2x
+The analisys over data warehouse is slightly different from the normal query over relational DB. The OLAP analisys require to compute complex aggregate function for aggregation, for comparisons or data mining. The normal SQL isn't enough confortable to be used for this kind of computation. The datawarehouse could be query by various tools:
+\begin{itemize}
+  \item Controlled Query Environments
+  \item Query and Report generation tools
+  \item Data mining
+\end{itemize}
+In the \textbf{Controlled query environment} have always a predefined structure with complex query, ad hoc analisys procedures and predefined reports. This environment requires ad hoc code development, stored procedures, predefined joins, aggregation and so on. Also some useful and flexible package for a better and easy-to-use report management are available. The system could be also fitted to use KPI of a specific economic area, like economical or finacial indicators.\\
+When the CQE is not enough for the user a solution can be to develop an \textbf{Ad hoc query environment}. With this solution the user can define OLAP queries with a point and click techniques that generates SQL code, this means that the user must know a little bit the data structure of the warehouse. THe advantage is that, like the CQE, the user can exploits complex query with spreadsheet reports techniques.
+
+\paragraph{OLAP Analisys} this adds some useful operations to perform more complex query.\\
+The rollup is a technique used for decreasing the data detail, this could be obtained by climbing up the hierarchy, from \textit{group by store, month} to \textit{group by city, month}, or dropping a whole dimension, from \textit{group by product, city} to \textit{group by product}. The drill down is the opposite of the rollup, it increase the data detail add a whole dimension or wakling dow the hierarchy. This operation could generate some problem related to spare matrix and data explosion, is problem can be solved using the slice and dice technique. This last operations selects a data subset by means of selection. The \textit{slice} means selecting a slice not changing the granularity but adding only a equality predicate, the \textit{dice} try to reduce the information of the slice over some reduced set. The result of this operation in figure \ref{fig:sd}, over the data in figure \ref{fig:sd_start}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/sd_start.png}
+  \caption{Starting table}
+  \label{fig:sd_start}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/sd.png}
+  \caption{Table sliced and diced}
+  \label{fig:sd}
+\end{figure}
+The last operation is the pivot, this solution reorganize the multidimensional structure, swapping the axises, without varying the detail level, this could be confortable to increase the readability of the same information.
+
+\paragraph{Extension of SQL language} this extension was introduced to support, in a better way, the new computation request of the data warehouse world. The were also standardized from the ANSI.\\
+The computation window is a new clause introducted by the extended SQL. Is charaterized by:
+\begin{itemize}
+  \item \textbf{Partitioning}: Rows are grouped, like \textit{group by}, but without collapsing them.
+  \item \textbf{Reordering}: Rows are ordered inside its group created by the partitioning.
+  \item \textbf{Aggregation Windows}: It defines where perform the aggregation.
+\end{itemize}
+Example:\\
+\textit{Show, for each city and month: (1) Sales amount and (2) Average on the current month and the two previous months, separately for each city.} The query will be:
+\begin{figure}[hp!]
+  \includegraphics[width=\linewidth]{images/avg.png}
+\end{figure}\\
+Some consideration over this function: The sort order is required altought the computation of the window become inconsisten. When the window is not complete, like end of the month, the computation takes place on the available rows. Is possible to use several window at the same time. The aggregation window may be defined in two ways:
+\begin{itemize}
+  \item Physical Level: It builds the group by counting rows (\textit{current and 2 preceding \textbf{rows}}).
+  \item Logical Level: It builds the group by defining and interval on the sort key (\textit{current and 2 preceding \textbf{months}}).
+\end{itemize}
+both of this solution can implement a variable window using PRECEDING, BETWEEN and FOLLOWING. Is also posbbile to defined an UNBOUNDED window that change its size during that computation using only one fixed bound, useful for cumulative total. The difference is that the physical one not look at missing rows and is possibile to order by more than one keys. Altought the logical can perform ordering only over numerical or data type where a distance can be defined and only by one key at the time. Another important characteristics is the possibility to compare detailed and total data without problem.\\
+There is also a Ranking function that computes the rank of a value inside a partition, it could be of 2 types, \textbf{rank()} that computes the rank by leaving an empty slot after a tie, and \textbf{denserank()} that rank by leaving an empty slot after a tie. Of course this function requires an ordering altought would be meaningless, the partition is not necessary because it can compute also over the whole table. Is important to notice that the order by of the over is not the visualizing order, but is only the order for the ranking, if a ordered visualization is needed an external group by is compulsory.\\
+The main important extension is related to the \textit{group by} that allows to compute multiple aggretation without performing separte query, this increase the efficency of the whole system.\\
+Using the rollup function over that computes multiple aggregates one at the time. The order in the expression is fundamental, it will compute the aggregate starting with all attribute and removing it one by one from right to left. The visualization of this computation have NULL value to represents the superaggregates, an example in figure \ref{fig:rollup}.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/rollup.png}
+  \caption{Rollup with 3 values}
+  \label{fig:rollup}
+\end{figure}
+In this figure the first row with NULL present the total for the 7th month for Milano, the second one, with 2 NULL, is the total of all months for Milano, the last one, with 3 NULL, is the total for all months, for all cities.\\
+The \textbf{cube} function is used for computing all aggregates of all possible combination, in this case the order of the parameters is not important. This function is like performing more rollup at the time, is also well implemented respect software computation.
+
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
+
+% \section{Data Mining}
+% \subsection{Introduction}
+
 
 \end{document}
