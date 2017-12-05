@@ -1200,5 +1200,139 @@ The flow of the data analysis is named KDD, \textit{Knowledge Discovert from Dat
   \caption{Knowledge Discovert from Data}
   \label{fig:kdd}
 \end{figure}
+The first step is the data selection. Starting from a big source, like a data warehouse, only a part of this repository will be used. The preprocessing phase is similar to the ETL phase, it perform data cleaning and data integration to generate data fitted for the mining. A good quality is needed, no good quality, no good quality pattern.\\
+The data mining origins start from the statics, now are also used for machine learning, pattern recognition and database systems.\\
+The are two types of analysis techniques, the \textbf{Descriptive method} that extract interpretable model describing data starting from pattern. Are useful for client segmentation for example. Another technique is the \textbf{Predictive methods} exploits some know variables to predict unknow or future values of other variables. An example could be the spam filter. This technique can't predict anomal events, not linke to the previuos history.\\
+Some of the most important predictive methods are the \textbf{classification} this try to predict a class label by defining an interpretable model of a given phenomenon.\\
+How this it works?\\
+After a traning phase where the system understand from a traning set, where all data is labelled, the system define a model to parse unclassified data for correctly classifing it. Some examples are:
+\begin{itemize}
+  \item Decision tree
+  \item Bayesian classification
+  \item Neural networks
+  \item SVM
+\end{itemize}
+The selection of the methods to be used depends on accuracy, interpretablity, scalability, noise and outlier management. A more accurate process probably generate uninterpretables models and so on. There isn't a final technique, every problem need a fitted solution.\\
+Another important predictive methods is the \textbf{clustering} that try to detect groups of similar data objects, computing distance, and identifying exceptions and outliers. The k-means is an example, like SOM or density-based. In these techniques the requirements are similar to the previous one, with more importance over the scalability and the noise managements. These results are really hard to be interpreted and this is why are often passed to a classification phase.\\
+The \textbf{association rules} are newer and its behaviour is to extract frequent correlations or pattern from a transactional database. One of the most know result of this technique was the \textit{Diapers $\rightarrow$ Beer} correlation. Using these methods allow solution for cross-selling, market basket analysis and shop layout design.\\
+There are important, still open, issues related to:
+\begin{itemize}
+  \item Scalibility to HUGE data volumes.
+  \item Data dimensionality.
+  \item Complex data structues, heterogeneous data formats.
+  \item Data quality.
+  \item Privacy preservation.
+  \item Streaming data.
+\end{itemize}
+
+\subsection{Data preprocessing}
+There are several data set types:
+\begin{itemize}
+  \item Record
+  \begin{itemize}
+    \item Tables
+    \item Document
+    \item Transaction
+  \end{itemize}
+  \item Graph
+  \begin{itemize}
+    \item WWW: Link from page to page
+    \item Molecular Structures
+  \end{itemize}
+  \item Ordered
+  \begin{itemize}
+    \item Spatial data
+    \item Temporal
+    \item Sequential
+    \item Genetic Sequence
+  \end{itemize}
+\end{itemize}
+
+The tabular data is a collection of record characterized by a fixed set of attributes. Presenting documents data is performed transforming it in a vector of terms. In this cases an important phase is the filtering of stock word (grammar article, word to singular, verbs to infinite, ecc...).\\
+There are different types of attribute:
+\begin{itemize}
+  \item \textbf{Nominal}: ID Numbers, eye color, zip codes, ecc... (D)
+  \item \textbf{Ordinal}: Rankings, grades, height, ecc... (DO)
+  \item \textbf{Interval}: Calendar dates, temperatures, ecc... (DOA)
+  \item \textbf{Ratio}: temperature Kelvin, lenth, time, counts, ecc... (DOAM)
+\end{itemize}
+the types depends on which of the following prepertis it possesses:
+\begin{itemize}
+  \item \textbf{Distinctness}: =, $\neq$
+  \item \textbf{Order}: $<$, $>$
+  \item \textbf{Addition}: +, -
+  \item \textbf{Multiplication}: *, /
+\end{itemize}
+another characterization is \textbf{discrete} or \textbf{continous} types.\\
+The data quality is really important. Noise, outliers or missing values can generate a problems and must be managed for a correct data usage. There are a lot of reasons for missing values, from information not collected to attributes not applicable to all cases. In both case they must be handled by:
+\begin{itemize}
+  \item Eliminate data objects
+  \item Estimate missing values
+  \item Ignore the missing value during analysis
+  \item Replace with all possible values.
+\end{itemize}
+
+The preprocessing phase is divided in more step. The \textbf{aggregation} cobine two or more attributes into a single attribute. The purpose is to perform data reduction, change of scale and getting more "stable" data. The \textbf{data reduction} generates a reduced representation of the sataset. This rappresentation is smaller in volume, but it can provide similar analytical results. The techniques used to perform this tasks are:
+\textbf{Sampling} that is employed for data selection. Samples are easier to be used, because they are really little respect the entire sets and they become less expensive from the point of expenses and time consuming. Of course the idea is to preserve the quality of the entire set. There are several types of sampling:
+\begin{itemize}
+  \item Simple Random Sampling: Equal probability.
+  \item Without replacement: Each selected item is removed from the population (difference on probability).
+  \item With replacement: Not removed from population, the item could be a duplicate.
+  \item Stratified: Preserve the distribution of the starting schemes, performing random selection inside the single partition.
+\end{itemize}
+
+The \textbf{curse of Dimensionality} says that \textit{when dimensionality increases, data becomes increasingly sparse in the space that it occupies}. On solution is to perform \textbf{dimensionality reduction}, it tries to reduce the amount of time and memory required by the algorithms, allow data to be more easilty visualized and may help to eliminate irrelevant features or reduce noise. The principal techniques used are:
+\begin{itemize}
+  \item Principle Component Analysis: Merge data point on a vector, missing physical idea.
+  \item Singulat Value Decomposition.
+  \item Others: Supervised and non-linear methods.
+\end{itemize}
+Another way to reduce the dimensionality of data is to reduce the redundant features, for example: \textit{purchase price of a product and the amount of sales tax paid}. Also removing irrelevant features is useful. How can i do this? There are several techniques:
+\begin{itemize}
+  \item Brute-Force: Try all possible feature as input.
+  \item Embedded: Feature selection occurs naturally as part of the algorithm.
+  \item Filter: Selection before the run.
+  \item Wrapper: Use the algo like a blackbox to find best subset of attributes.
+\end{itemize}
+Is also possible to create a new feature that can capture the important information in a data set much more efficiently than the original attributes. Thi can be achived with: Feature extraction, mapping to new space and feature construction.\\
+The last part of data reduction is the \textbf{discretization} that split the domain of a continuous attribute in a set of intervals, reducing the cardinality of the attribute domain. Solutions:
+\begin{itemize}
+  \item N intervals with the same width ($W=(V_max - V_min)/N$): Badly affect by outliers and sparse data. Incremental.
+  \item N intervals with (approximately) the same cardinality: Fits better outliers and spare, but not incremental.
+  \item Clustering: Fit well sparse data and outliers.
+\end{itemize}
+an example in figure \ref{fig:discretization}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/discretization.png}
+  \caption{Discretization}
+  \label{fig:discretization}
+\end{figure}
+
+In some cases an \textbf{attribute transformation} could be useful. Is a function that maps the entire set of values of a given attribute to a new set of replacement values such that each old value can be identifies with one of the new values. This normalization can be achieved with solution like: min-max normalization (rescaling), z-score and deciaml scaling.\\
+A lot of operations are performed computing distances:
+\begin{itemize}
+  \item \textbf{Similarity}: Numerical measure of how alike two data objects are, high value implies similar object, often falls in [0,1] range.
+  \item \textbf{Dissimilarity}: Numerical measure of how different two data objects are, lower means different objects.
+  \item \textbf{Proximity} refers to a similarity or dissimilarity.
+\end{itemize}
+In case of a simple attribute the solutions are reported in figure \ref{fig:simdis}.
+\begin{figure}[hp!]
+  \includegraphics[width=0.9\linewidth]{images/simdis.png}
+  \caption{Similarity and Dissimilarity for simple attributes}
+  \label{fig:simdis}
+\end{figure}
+When the similarty or dissimilarty must be computed over different attributes a more complex instruments is necessary, some examples are:
+\begin{itemize}
+  \item \textbf{Euclidean Distance}: $dist=\sqrt{\sum_{k=1}^{n}(p_k - q_k)^2}$ It requires standardization if scales differ.
+  \item \textbf{Minkowski Distance}: $dist=(\sum_{k=1}^{n}|p_k - q_k|^r)^\frac{1}{r}$ this is the general case, the r=2 is the euclidean, r=$\inf$ is the supremum.
+\end{itemize}
+
+Is some cases could be also useful computing distances between binary vectors, one solution is using the simple matching that is: SMC = Number of Matches / Number of attributes $(M_11 + M_00) / (M_01 + M_10 + M_11 + M_00)$. The Jaccard coefficents instead calculate similarities with: J = number of 11 matches / number of not-both-zero attributes values $(M_11) / (M_01 + M_10 + M_11)$.\\
+The final computation distance over 2 point with more attributes can be evaluated with the following formula:
+\begin{equation}
+  \begin{gathered}
+    similarity(p,q) = \frac{\sum_{k=1}^{n} \omega_k \delta_k s_k}{\sum_{k=1}^{n} \delta_k}
+  \end{gathered}
+\end{equation}
 
 \end{document}

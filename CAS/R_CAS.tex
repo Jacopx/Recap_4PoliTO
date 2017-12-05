@@ -97,7 +97,7 @@ There are to \textbf{Classes of Parallelism}:
   \item \textbf{Task-Level} (TaskLP): Many task of a work can operate independently.
 \end{itemize}
 The first solution allow the processor to split the data operation over multiple cores, you can for example divide an array of n elements over 4 core and, if T is the computational time needed for the entire array, the final time will be T/4 plus a little time for the reunion of the data. It split the one task on different data.\\
-The TLP instead is able to manage multiple task over the same data, this is the common behaviour of the actual system (pipelining techniques).\\
+The TLP instead is able to manage multiple task over the same data, this is the common behavior of the actual system (pipelining techniques).\\
 There are different Parallel Architectures:
 \begin{itemize}
   \item \textbf{Instruction-level} (ILP): The is modestly use the data-level parallelism.
@@ -253,7 +253,7 @@ Pipelining is an a solution to execute multiple instructions at the same time ov
 \end{figure}
 The \textbf{throughput} of a pipelined processor is the number of instructions which exit the pipeline in the time unit. All the pipeline stages are synchronized (they proceed to executing the new task all together); the necessary time for executing one step is called machine cycle and, normally, corresponds to one clock cycle. Of course the duration of a machine cycle is determined by the slowest stage. CPI means clock cycles per instruction. The ideal pipeline have all stages perfectly balanced, in this way the $TRP_{pipelined} = TRP_{unpipelined} * n$ where \textit{n} is the number of pipeline stages.
 
-\subsection{Behaviour}
+\subsection{behavior}
 The execution of each instruction may be composed of at most five clock cycles:
 \begin{itemize}
   \item \textbf{IF}: Fetch the instruction from the memory address of the PC and save it in the IR.
@@ -269,7 +269,7 @@ The pipelined version instead can be more powerful beacause a new instrcution is
   \item The register file is used in two stages: for reading (second half of CC) in ID stage and for writing (first half od CC) in WB stage.
   \item The PC (\textit{Program Counter}) must be changed in the IF stage, What about branches?
 \end{itemize}
-A little view of the system behaviour in figure \ref{fig:time_evo_pipe}.
+A little view of the system behavior in figure \ref{fig:time_evo_pipe}.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\linewidth]{images/time_evo_pipe.png}
@@ -301,7 +301,7 @@ A stall causes the introduction of a bubble in the pipeline.
 \end{itemize}
 Solving this problem implies adding or improving the hardware.
 
-\paragraph{Data hazards} overlapping the execution of instructions, as it is done by pipelining, changes the order of read/write accesses to operands. This can lead to wrong results and undeterministic behaviour.\\
+\paragraph{Data hazards} overlapping the execution of instructions, as it is done by pipelining, changes the order of read/write accesses to operands. This can lead to wrong results and undeterministic behavior.\\
 An example could be:\\
 \begin{lstlisting}
 ADD R1, R2, R3
@@ -309,7 +309,7 @@ SUB R4, R1, R5
 AND R6, R1, R7
 \end{lstlisting}
 The second instruction will read the value of R1 before the first instruction can write the new value. This will cause a wrong result. And is the same of course for the third instruction.\\
-If an \textbf{Interrupt effects} occurs during the execution of a critical piece of code (from the pov of data hazards) correctness may be restored. This may causa an undeterministic behaviour.\\
+If an \textbf{Interrupt effects} occurs during the execution of a critical piece of code (from the pov of data hazards) correctness may be restored. This may causa an undeterministic behavior.\\
 There are two possibile solution for data hazards problems:
 \begin{itemize}
   \item The first is using the stall till the data will be available.
@@ -476,7 +476,7 @@ A solution could be that, before issuing an instruction to the EX phase, check w
 \end{itemize}
 An alternative solution is like the MIPS R4000 that implements a 8 cycle pipelined processors. This means more forwarding, increased load delay slot and increased branch delay slot.
 
-\section{Instruction Level Parallelism}
+\subsection{Instruction Level Parallelism}
 The pipelines exploit the parallelism existing among instructions, which allows their execution in parallel. The highest the amount of ILP that can be found, the better the performance of the pipeline. There are two kind of approach:
 \begin{itemize}
   \item Static: Depending on the software (i.e compiler). Used in embedded system.
@@ -532,6 +532,91 @@ A \textbf{NAME} dependencies occurs when two instructions refer to the same regi
   \item \textit{Antidependence}: Instruction j writes a register or memory location that instruction i reads, and instruction i is executed first.
   \item \textit{Output dependence}: Both instruction i and j write the same register or memory location.
 \end{itemize}
-The name dependencies do not prevent from reordering involved instructions, provided that we change the register used by one of the two instructions, it can be exploited by compiler (statically) or by the processor (dynamically). A similar method can be implemented to solve name dependencies involving memory locations.
+The name dependencies do not prevent from reordering involved instructions, provided that we change the register used by one of the two instructions, it can be exploited by compiler (statically) or by the processor (dynamically). A similar method can be implemented to solve name dependencies involving memory locations. Finding possibile hazards require carefully analyzing the code, taking also into account the effects of branches.\\
+Another kind of dependecies is the control one, it occurs when an intruction depends on a branch. An instruction that is control dependent on a branch cannot be moved before the branch (so that its execution is no more controlled by the branch). Altought, an instruction that is not control dependent on a branch cannot be moved after the branch (so that its execution become dependent on the branch). Preserving the control dependencies is a sufficient condition for preserving the program correctness. The reverse is not always true! The critical properties for program correctness are:
+\begin{itemize}
+  \item Exception behavior
+  \item Data flow
+\end{itemize}
+Changing in the instruction order must not change how exception are raised. Anticipating the LD before the BEQZ in this piece of code:
+\begin{lstlisting}
+DADDU R2, R3, R4
+BEQZ R2, L1
+LD R1, 0(R2)
+
+L1: ...
+\end{lstlisting}
+is not possible because LD can cause an exception, no matter whether the branch is taken or not.\\
+The data flow is easy to be understand, changing the order of some operations can change the final result of the software running therefor is important to pay attention on that problem.
+
+\subsection{Branch Prediction Techniques}
+Branches can potentially impact seriously on the pipeline, a solution can be to predict how branches will behave. Also in this case the are two main solution:
+\begin{itemize}
+  \item Static Techniques: Handled by the compiler resorting to a preliminary analysis of the code.
+  \item Dynamic Techniques: Implemented by the hardware based on the behavior of the code.
+\end{itemize}
+The \textbf{static} solution become useful when cobined with other static techniques, delayed branches and rescheduling to avoid data hazards.
+Th compiler may predict branch behavior in different alternative ways:
+\begin{itemize}
+  \item Predict branches as taken.
+  \item Predicting behavior depending on branch direction: Forward branch often untaken, Backward branches more often taken.
+  \item Prediction based on earlier runs: Try to run a limited number of times, gather statistics and use it for prediction.
+\end{itemize}
+
+Using the dynamic technique, the hardware is in charge of prediction. Starting from the branch instruction address to active different prediction mechanisms. There are some difference between possibile prediction:
+\begin{itemize}
+  \item Branch History Table (1 and 2 bit schemes).
+  \item 2-level prediction schemes (correlating predictors).
+  \item Branch-target buffer.
+\end{itemize}
+The \textbf{BHT} is the simplest method. Is a small memory indexed by the lower portion of the address of the branch instruction, containing for each entry one or more bits recording whether the branch has been taken or not in the last execution.\\
+\textbf{Two-bit prediction} schemes provide higher prediction capabilities. For every branch, two bits are mantained, and the prediction is changed only after missing twice. There is also the \textbf{n-bit} solution that us n bit for performing a similar behavior of the previous method. When the counter value is greater than one half of tis maximum value, the branch is predicted as taken, when it is lower it is predicted as not taken.\\
+The correlating predictors is an approach (also called two-level predictors) base on exploting dependencies between the result of branches, where the the behavior of a branch is strongly dependent on the result of the previous ones. They use the behavior of the last \textit{m} branches to choose from $2^m$ branch predictors, each of which is a \textit{n}-bit predictor. The hardware implementation is very simple:
+\begin{itemize}
+  \item The history of the most recent \textit{m} branches is recorded in an m-bit shift register, where each bit records whether the branch was taken or not.
+  \item The branch-prediction buffer is indexed using a concatenation of the low-order bits from the branch address with the \textit{m} low-order history bits.
+\end{itemize}
+
+Reducing the negative effects of control dependencies requires knowing as soon as possible:
+\begin{itemize}
+  \item Whether the branch has to be taken or not.
+  \item The new value of the PC (if the branch is assumed to be taken).
+\end{itemize}
+The later issue is faced by introducing a \textbf{Branch-Target buffer} (or cache). Each entry of the BTB contains:
+\begin{itemize}
+  \item \textbf{Address} of the considered branch.
+  \item \textbf{Target} value to be loaded in the PC.
+\end{itemize}
+Using the BTB, the PC is loaded with the new value at the end of the IF stage, i.e., even before the branch instruction is decoded. The flow of this solution in figure \ref{fig:btb}.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{images/btb.png}
+  \caption{Branch-Target Buffer behavior}
+  \label{fig:btb}
+\end{figure}
+The BTB could be used cobined with other strategy, like branch history table, if a two-bit prediction is adopted.
+
+\subsection{Dynamic Scheduling Techniques}
+The \textit{dynamic scheduling} is a technique aimed at rearranging in hardware the instruction execution order to reduce the pipeline stalls while maintaining data flow and exception behavior. The advantages of DS are:
+\begin{itemize}
+  \item Identifies some dependencies that are unknow at compile time.
+  \item Simplifies the compiler job.
+  \item Allows the processor to tolerate unpredictable delays.
+  \item Allows to run the same code on different pipelined processors.
+\end{itemize}
+Starting from this example:
+\begin{lstlisting}
+DIV.D F0, F2, F4
+ADD.D F10, F0, F8
+SUB.D F12, F8, F14
+\end{lstlisting}
+where the ADD instruction need to wait the end of the DIV for a data dependency, we can think about some DS solutions.\\
+One possible solution for the proposed example is to remove the constraints of \textit{inorder instruction execution}. This implies some considerations, it may introduce:
+\begin{itemize}
+  \item WAR hazards
+  \item WAW hazards
+  \item Imprecise execeptions
+\end{itemize}
+% 9_Dyn-Sched @ Pag. 10
 
 \end{document}
