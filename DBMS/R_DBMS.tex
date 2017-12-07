@@ -1316,8 +1316,8 @@ A lot of operations are performed computing distances:
   \item \textbf{Proximity} refers to a similarity or dissimilarity.
 \end{itemize}
 In case of a simple attribute the solutions are reported in figure \ref{fig:simdis}.
-\begin{figure}[hp!]
-  \includegraphics[width=0.9\linewidth]{images/simdis.png}
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/simdis.png}
   \caption{Similarity and Dissimilarity for simple attributes}
   \label{fig:simdis}
 \end{figure}
@@ -1334,5 +1334,135 @@ The final computation distance over 2 point with more attributes can be evaluate
     similarity(p,q) = \frac{\sum_{k=1}^{n} \omega_k \delta_k s_k}{\sum_{k=1}^{n} \delta_k}
   \end{gathered}
 \end{equation}
+
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
+
+\section{Beyond Relational Databases}
+\subsection{Introduction}
+The first NoSQL databases was developed around 1998. The main difference are three:
+\begin{itemize}
+  \item No joins: Complex and unuseful in some cases.
+  \item Schema-less: No tables, implicit schema.
+  \item Horizontal scalability: Adding machines not require to stop.
+\end{itemize}
+In this kind of systems the table are substituted with \textbf{specialized storage} solutions like document-based, key-value pairs, graph databases and columnar storage. Removing the scemas constraints allows better option for managing dynamic changing documents, semi-structured or un-structured data. The advantages of an Horizontal scalability is that sufficient to add a server to your pool in order to reduce the load. In the classic system the only solution is to increase the power of the system. The main drawbacks is that there isn't a standardized language for the managing, each system has is own language. The old complex joins are now solved with non standard interfaces. The SQL system are better for managing flat and structured data, the NoSQL are better for complex (e.g. Hierarchical) data like JSON and XML. Some example of NoSQL software are \textbf{MongoDB}, BigTable, Redis, Cassandra, HBase and CouchDB. In some cases NoSQL software developer, like the Mongo ones, have introduct some "more SQL" feature to its build to better fit some problem.
+\subsection{Structure}
+These new kind of system have also introduced new types of data structures, the most important are in figure \ref{fig:tnosql}.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/tnosql.png}
+  \caption{Types of NoSQL databases}
+  \label{fig:tnosql}
+\end{figure}
+The first type is the \textbf{key-value} is:
+\begin{itemize}
+  \item \textbf{Simplest} data stores.
+  \item Macth keys with value.
+  \item No Structure.
+  \item \textbf{Great performance}.
+  \item Easy scalable.
+  \item Very fast.
+  \item Examples: Redis, Riak, Memcached (used to solve FB problem).
+\end{itemize}
+The second one is the \textbf{column-oriented} databases that are:
+\begin{itemize}
+  \item Store data in columnar format.
+  \item A column is a (complex) attribute.
+  \item Key-value pairs stored and retrived on key in a parallel system (similar to indices).
+  \item Rows can be constructed from cloumn values.
+  \item Column stores can produce row output (\textbf{tables}).
+  \item Completely transparent to application.
+  \item Example: Cassandra, HBase, Hypertable, AMZ DynamoDB.
+\end{itemize}
+Another structure is the \textbf{graph}, the main feature are:
+\begin{itemize}
+  \item Based on graph theory.
+  \item Made up by \textbf{Vertex} and \textbf{Edges}.
+  \item Used to store information about networks.
+  \item Good fit for several real world application.
+  \item Examples: Ne04J, Infinite Graph, OrientDB.
+\end{itemize}
+The last structure is the \textbf{document} ones, where document means complex, that is:
+\begin{itemize}
+  \item Database stores and retives documents.
+  \item Keys are mapped to documents.
+  \item Documents are self-describing (\textbf{attribute=value}).
+  \item Has hierarchical-tree nested data structures (e.g. Maps, lists, datetime, ...)
+  \item \textbf{Heterogeneous} nature of documents.
+  \item Examples: \textbf{MongoDB}, CouchDB, RavenDB.
+\end{itemize}
+
+\subsection{NoSQL example: CouchDB}
+The CouchDB is good to be studied because is kept is soul entirely on the NoSQL side respect other software, is a Pure NoSQL database.\\
+CouchDB is a document-oriented database can be queried and indexed in \textbf{MapReduce} fashion, it offers incremental \textbf{replication} with bi-directional conflict detection and resolution. Is written in Erlang, a robust functional programming language ideal for building concurrent \textbf{distributed systems}. Erlang allows for a flexible design that is easily scalable and readily extensible. Is also RESTful JSON API that allows access from any environment that permit HTTP request, it don't need a client.
+\paragraph{MapReduce} is a scalable distributed programming model to process Big Data. The first analisys over these model come from Google in 2004, they have try to change the point of view trying to passe the code to the node ehere the data is stored and not get all the data to the central code node. It consist in two function:
+\begin{itemize}
+  \item \textbf{Map}:
+  \begin{itemize}
+    \item Process each record (document) indipendently.
+    \item Return a list of key-value pairs.
+  \end{itemize}
+  \item \textbf{Reduce} (optional):
+  \begin{itemize}
+    \item Reduce the list of key-value returned by the map to a single value (it can be a complex value such as a map).
+  \end{itemize}
+\end{itemize}
+The map function is called one document by one and it get back a key, that index in a sorted way the result, and the value itself. Performing a function like this:
+\begin{lstlisting}[frame=single]
+  Function(doc) {
+    emit(doc.exam, doc.mark);
+  }
+\end{lstlisting}
+The result take the value of the DB on the left and transform it to the table on the right of the figure
+\ref{fig:map}.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/map.png}
+  \caption{Map function example}
+  \label{fig:map}
+\end{figure}
+The key can be more complex adding, for example the accademy year. Also the value can be complex adding the CFU for computing later an weighted average and so on.\\
+The reduce function perform operations over the value returned by the map function. The most simple SQL-equivalent operations performed by means of reducers are "group by" aggregations, but with more more powerful functions to be implemented. It also possible to perform reduce over already reduced sets. For example, using this function:
+
+\begin{lstlisting}[frame=single]
+  Function(key, value) {
+    S = sum(values);
+    N = len(values);
+    AVG = S/N;
+
+    return AVG;
+  }
+\end{lstlisting}
+
+The output start from the left table and perform operations to return a structure like the right one of the figure \ref{fig:reduce}.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/reduce.png}
+  \caption{Reduce function example}
+  \label{fig:reduce}
+\end{figure}
+as you can see all the exams are grouped and there is no difference between the same exam created with the exam name like keys. If this operations is computed over a starting table with (ExamName, AccYear) like keys the result will be with exams grouped by name and accamedic year; the result is similar to the \textit{GROUP BY Exam, AYear}. One of the most important feature of this system is the parallelization capabilities, in figure \ref{fig:mp_par} an example of how the result will be computed with more nodes with data.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/mp_par.png}
+  \caption{Parallel workflow example}
+  \label{fig:mp_par}
+\end{figure}
+
+\subsection{Replication}
+The replication try to keep the same data, portions of it, in different places, like local and/or remote servers, clusters, data centers. The main goals are:
+\begin{itemize}
+  \item Redundancy helps surviving failures (availability).
+  \item Better performance.
+\end{itemize}
+To achieve this feature the are two possible solutions.
+\paragraph{Master-Slave} this first solution implement a \textit{master} server that takes all the writes, updates and insert and some \textit{slaves} servers that take all the reads (they can't write). This means only a read scalability and the master become a single point of failure. In the case of CouchDB also the Master-Master replications can be implemented.
+\paragraph{Synchronous replication} is a different solution, the master will waits the commit of all slaves, before commiting. This is similar to the 2-phase commit in RDB. It could be performance killer! A treade-oof could be wait only for a subset (majority) of slaves before commit.
+\paragraph{Asynchronous replication} have a master that commit all operations without waiting the slaves. Each slaves independently fetchs update from master, which may fail...
+\begin{itemize}
+  \item If no slave has replicated, the you've lost the data commited to the master.
+  \item If some slaves have replicated and some haven't, then you have to reconcile.
+\end{itemize}
+This is a faster but unreliable solution.
+
+%\subsection{Distributed databases} % 10BeyondRelData @ Pag. 17
 
 \end{document}
