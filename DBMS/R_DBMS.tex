@@ -1335,6 +1335,199 @@ The final computation distance over 2 point with more attributes can be evaluate
   \end{gathered}
 \end{equation}
 
+\subsection{Association Rules}
+The objective of the association rules is to extract frequent correlation or patterns from a transactional database. An example could be:
+Diapers $/Rightarrow$ Beer that it means that, for example, 30\% of transaction containing diapers also contains beer. \textbf{It is not a cause-effect correlation!}.\\
+A collection of a transaction is:
+\begin{itemize}
+  \item Set of items.
+  \item Without order correlations between them.
+\end{itemize}
+The association rule extraction is an exploratory technique that can be applied to any data type. It can also be applied over textual data document, ecc...\\
+
+\paragraph{Definitions} An association rule is compesed by multiple parts:
+\begin{itemize}
+  \item \textbf{Itemset}: Set including one or more items.
+  \item \textbf{k-itemset}: Itemset that contains k items.
+  \item \textbf{Support count} (\#): Frequency of occurrence of an itemset.
+  \item \textbf{Support}: Fraction of transaction that contains an itemset.
+  \item \textbf{Frequent Itemset}: Itemset whose support is greater than or equal to a \textit{minsup} threshold.
+\end{itemize}
+We need also to define some rule quality metrics. Given the association rule A $\Rightarrow$ B (A, B are itemsets) the:
+\begin{itemize}
+  \item \textbf{Support}: Fraction of transaction containing both A and B: $(\#\{A,B\}/|T|)$
+  \begin{itemize}
+    \item $|T|$ is the cardinality of the transactional DB.
+    \item A priori probability of itemset AB.
+    \item Rule frequency in the DB.
+  \end{itemize}
+  \item \textbf{Confidence}: Frequency of B in transaction containing A: $(sup(A,B)/sup(A))$ [Conditional probability]
+\end{itemize}
+An example with data from table below:
+\begin{center}
+  \begin{tabular}{ |c|c| }
+    \hline
+    \textbf{TID} & \textbf{Items}\\
+    \hline
+    \hline
+    1 & Bread, Coke, Milk\\
+    \hline
+    2 & Beer, Bread\\
+    \hline
+    3 & Beer, Coke, Diapers, Milk\\
+    \hline
+    4 & Beer, Bread, Diapers, Milk\\
+    \hline
+    5 & Coke, Diapers, Milk\\
+    \hline
+  \end{tabular}
+\end{center}
+From the itemset \{Milk, Diapers\} the following rules may be derived:
+\begin{itemize}
+  \item Rule: Milk $\Rightarrow$ Diapers
+  \begin{itemize}
+    \item Support: $\#\{Milk,Diapers\}/\#trans$ = 3/5 = 60\%
+    \item Confidence: $\#\{Milk,Diapers\}/\#\{Milk\}$ = 3/4 = 75\%
+  \end{itemize}
+  \item Rule: Diapers $\Rightarrow$ Milk
+  \begin{itemize}
+    \item Support: 60\%
+    \item Confidence: $\#\{Milk,Diapers\}/\#\{Diapers\}$ = 3/3 = 100\%
+  \end{itemize}
+\end{itemize}
+Given a set ot transaction T, association rule mining is the extraction of the rules satisfying the constraints of the minimum support and confidence. That rules is not easy to be obtained.\\
+During the execution of these extraction we like to have a \textbf{complete} (\textbf{all} rules satisfying both constraints) and \textbf{correct} (\textbf{only} the rules satisfying both constraints). This is true for the association rules, but not for all techniques that we will study during this course.\\
+\paragraph{Extraction} The first easy solution is the \textbf{brute-force} approch, it:
+\begin{itemize}
+  \item Enumerate all possible permutations.
+  \item Compute support and confidence for each rule.
+  \item Prune all the rules that do not satisfy the threshold.
+\end{itemize}
+Of course this method is computationally unfeasible. The fisrt variation from the brutal method is the following. Given an itemset, the extraction process may be split:
+\begin{enumerate}
+  \item Generate frequent (passing the threshold) itemsets.
+  \item Generate rules from each frequent itemset.
+\end{enumerate}
+The two step above have a lot of problem anyway, the first one can be performed with different techniques like Apriori, FP-growth, ecc.. Best it still remain computionally expensive. The second one is more standard and it can be improved too much and is the generation of all possible binary partitioning of each frequent itemset. The BF approch have a huge complexity \textasciitilde $ O(|T| 2^d w)$ where d is the number of items and w the transaction length.\\
+How to improving the efficiency?
+\begin{itemize}
+  \item Reduce the number of candidates.
+  \item Reduce the number of transaction (e.g. Remove all the transaction with less then x items searching for y items).
+  \item Reduce the number of comparisons.
+\end{itemize}
+
+\paragraph{Apriori Principle} [Agr94] is the first studied algorithm, it say that: "\textit{If an itemset is frequent, then all of its subsets must also be frequent}".\\
+Of course the support of an itemset can never exceed the support of any of its subsets. This is guarantee by the antimonote property of the support measure: $if A \subseteq B \rightarrow sup(A) \geq sub(B)$. This allow a candidates reductions.\\
+It's a level-based approch, at each iteration extracts itemsets of a given length k. For each level, two main steps are executed:
+\begin{enumerate}
+  \item Candidate Generation:
+  \begin{itemize}
+    \item Join Step: Generate candidates of length k+1 by joining frequent itemsets of length k.
+    \item Prune Step: Apply Apriori principle: Prune length k+1 candidate itemsets that contain at least one k- itemset that is not frequent.
+  \end{itemize}
+  \item Frequent iteset generation:
+  \begin{itemize}
+    \item Scan DB to count support for k+1 candidates.
+    \item Prune candidates below minsup.
+  \end{itemize}
+\end{enumerate}
+The generation of candidates start ffrom $L_k$, that is the set of candidate of length k in a lexicographical order. For each candidate of length k:
+\begin{itemize}
+  \item Self-join with each candidate sharing same prefix $l_{k-1}$ prefix.
+  \item Prune candidates by applying Aprirori principle.
+\end{itemize}
+An example to clarifying:\\
+$L_3 = \{abc, abd, acd, ace, bcd\}$
+\begin{itemize}
+  \item Self-join:
+  \begin{itemize}
+    \item \textbf{abcd} from \textit{abc} and \textit{abd}.
+    \item \textbf{acde} from \textit{acd} and \textit{ace}.
+    \item \textbf{bcd} will be prune because there are not frequent items in the next step.
+  \end{itemize}
+  \item Prune with Apriori:
+  \begin{itemize}
+    \item \textbf{acde} is removed because \textit{ade} is not in L3.
+    \item $C_4 = \{abcd\}$
+  \end{itemize}
+\end{itemize}
+Some criticalities can be found:
+\begin{itemize}
+  \item Scan transaction DB to count support of each itemset:
+  \begin{itemize}
+    \item Total number of candidatesmay be large.
+    \item One transaction may contain many candidates.
+  \end{itemize}
+\end{itemize}
+The best efficient data structure is the hash-tree. The leaf will contains list of items, the interior node are hash table.\\
+The candidate generation can have real problem with the generation of the 2-itemset because is a cartesian product, also extracting long frequent itemsets will requires generating all frequent subsets. The number of scans is n + 1 when longest frequent pattern length is n.\\
+Other factors are:
+\begin{itemize}
+  \item Minimum support threshold: Lower support threshold increases number of frequent itemsets.
+  \item Dimensionality (number of items): More space to store support count. If the number of frequent increase, both computation ans I/O costs may also increase.
+  \item Size of DB: Apriori multiple passes, run time increase with the number of transactions.
+  \item Average transaction width: Width increase in dense data sets. May increase max length of frequent itemsets and trasversals of hash tree.
+\end{itemize}
+Some improving algorithm were proposed:
+\begin{itemize}
+  \item Hash-based itemset counting [Yu95]
+  \item Transaction reduction [Yu95]
+  \item Partitioning [Sav96]
+  \item Sampling [Toi96]
+  \item Dynamic Itemset Counting [Motw98] (Sergey Brin)
+\end{itemize}
+
+The second algorith studied is the \textbf{FP-growth} [Han00] that start from the ideas that Apriori makes too many scans of the DB. Is base to exploits a main memory compressed rappresentation of the database, the FP-tree:
+\begin{itemize}
+  \item High compression for dense data distrivution.
+  \item Complete representation for frquent pattern mining.
+\end{itemize}
+Frequent pattern mining by means of FP-growth:
+\begin{itemize}
+  \item Recursive visit of FP-tree.
+  \item Divide-and-counquer approach.
+\end{itemize}
+This solution require only two databse scans.\\
+The construction of the FP-tree is based on three steps:
+\begin{enumerate}
+  \item Count item support and prune items belowe minsup threshold.
+  \item Build Header Table by sorting items in decreasing support order.
+  \item Create FP-tree:
+  \begin{itemize}
+    \item For each transaction \textit{t} in DB:
+    \begin{itemize}
+      \item Order transaction \textit{t} items in decreasing support order (like HT).
+      \item Insert transaction \textit{t} in the FP-tree:
+      \begin{itemize}
+        \item Using existing path for common prefix.
+        \item Create new branch when path becomes different.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{enumerate}
+% DMassrules @ Pag.55 - New Lessons n.38
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
@@ -1578,7 +1771,7 @@ The volume of our data growth really really faster, we speaking now of thousant 
 
 \paragraph{Difference} traditional systems use database and datawarehouse with well-defined strucuture small enough to be fitted to the machines. In big data the dataset is not suitable for database and it's why new solution like HDFS has been developed, may need near real-time analysis that is a different approch from data warehousing. There are also a lot of different programming paradigms.\\
 Also the processing phase is changed, the traditional computation is processor bound and required a data trasfert from disks to CPUs to be processed this could be a problem because during these years the storage capacity has grown a lot, but the speed not the same...\\
-The solutions is to \textit{transfert the processing power to the data} it means that the various CPUs will compute only the subset of data that they have near in order to avoid data transfert. The problem is that this solution is not problem free, it must manage, hardware failure, network data transfert, data loss, ecc... Everything is managed by Hadoop in figure \ref{fig:hadoop}.
+The solutions is to "\textit{\textbf{transfert the processing power to the data}}" it means that the various CPUs will compute only the subset of data that they have near in order to avoid data transfert. The problem is that this solution is not problem free, it must manage, hardware failure, network data transfert, data loss, ecc... Everything is managed by Hadoop in figure \ref{fig:hadoop}.
 \begin{figure}[hp!]
   \includegraphics[width=\linewidth]{images/hadoop.png}
   \label{fig:hadoop}
