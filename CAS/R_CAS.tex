@@ -587,14 +587,14 @@ The later issue is faced by introducing a \textbf{Branch-Target buffer} (or cach
   \item \textbf{Address} of the considered branch.
   \item \textbf{Target} value to be loaded in the PC.
 \end{itemize}
-Using the BTB, the PC is loaded with the new value at the end of the IF stage, i.e., even before the branch instruction is decoded. The flow of this solution in figure \ref{fig:btb}.
-\begin{figure}[h!]
+Using the BTB, the PC is loaded with the new value at the end of the IF stage, i.e., even before the branch instruction is decoded. The flow of this solution in figure \ref{fig:btb}.\\
+The BTB could be used cobined with other strategy, like branch history table, if a two-bit prediction is adopted.
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{images/btb.png}
+  \includegraphics[scale=0.75]{images/btb.png}
   \caption{Branch-Target Buffer behavior}
   \label{fig:btb}
 \end{figure}
-The BTB could be used cobined with other strategy, like branch history table, if a two-bit prediction is adopted.
 
 \subsection{Dynamic Scheduling Techniques}
 The \textit{dynamic scheduling} is a technique aimed at rearranging in hardware the instruction execution order to reduce the pipeline stalls while maintaining data flow and exception behavior. The advantages of DS are:
@@ -617,6 +617,184 @@ One possible solution for the proposed example is to remove the constraints of \
   \item WAW hazards
   \item Imprecise execeptions
 \end{itemize}
-% 9_Dyn-Sched @ Pag. 10
+
+If the out-of-order execution is allowed, precise exception handling is impossible. This may mean that at the time when the exception is raised:
+\begin{itemize}
+  \item An instruction before that raising the exception still has to be completed, or
+  \item An instruction after that raising the exception has been already completed.
+\end{itemize}
+In both cases resuming program execution after exception handling becomes really difficult.\\
+\textbf{Splitting ID stage} it useful to support out-of-order execution, it is splitted in two parts:
+\begin{itemize}
+  \item Issue: decode instruction, check for structural hazards.
+  \item Read Operands: Wait until no data hazards, then read operands.
+\end{itemize}
+The issue stage reads instructions from a register or a queue (written by the IF stage). Instruction issue is performed in-order. After the instruction are issued, they may wait for operands, and then (when operands are available) sent to the EX stage. They can be stalled or bypass each other while in the read operand stage. Therefor, they can enter execution out-of-order.\\
+If the processor includes multiple functional units, multiple isntructions may be in execution at the same time. Instructions can also bypass each other while in the execution stage. Therefor, they can leave execution out-of-order.\\
+\paragraph{Hardware schemes} ont of the first solutions to achieve the dynamic scheduling was proposed in 1967 from an IBM architect, Robert Tomasulo. The key ideas in the Tomasulo's algorithm are:
+\begin{itemize}
+  \item Track the operands availability.
+  \item Introduce register renaming.
+\end{itemize}
+The \textbf{reservation stations} are the key novelty in the Tomasulo's approch. They have several functions:
+\begin{itemize}
+  \item They buffer the operands of instructions waiting to issue; operands are stored in the station as soon as they are available.
+  \item They implement the issue logic.
+  \item The univocally identify and instruction in the pipeline: pending instruction designate the reservation station that will provide them with an input operand.
+\end{itemize}
+Using the register renaming allow to eliminate WAW and WAR hazards. Each time an instruction is issued, the register specifiers for the pending operands are renamed to the names of the reservation stations in charge of computing them. An example in figure:
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/rename.png}
+  \caption{Register Renaming}
+  \label{fig:rename}
+\end{figure}
+The reservation stations related to each functional unit control when an instruction can begin execution at that unit. Results are passed directly to other functional units, rather than going through the registers. All results from the functional units and from memory are sent to the \textit{Common Data Bus}, which:
+\begin{itemize}
+  \item Goes everywhere, execept to the load buffer.
+  \item Allows all units waiting for an operand to load it simultaneously when it is available.
+\end{itemize}
+
+\paragraph{Issue} get an instruction from the instruction queue (implementing FIFO strategy):
+\begin{itemize}
+  \item If no reservation station is available, a structural hazard occurs, and the instruction stalls until a reservation station becomes available.
+  \item If there is an empty reservation station, send the instruction to it:
+  \begin{itemize}
+    \item If the operands are available, they are sent to the reservation station.
+    \item If not, the functional units responsible fo their generation are recorded.
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Flow} In case of normal instructions, when an operand appears on the CDB, it is read by the reservation unit. As soon as all the operands for an instruction are available in the RU, the instruction is executed. For the load and store operations, the first step is, as soon as the base register is available, the effective address is computed and written in the load/store buffer. The second step will be, for the load instruction: execute as soon as memory is available, for the store instructions, wait the operand to be written and then executed as soon as memory is available. In case of branches, to preserve exception behaviour, no instruction is allowed to initiate execution until all branches that precede the instruction in program order have completed. When the result of an instruction is available, it is immediately written on the CDB, and from there is the register and functional units waiting for it.\\
+
+Each reservation station is associated with an \textbf{identifier}. It identify also the operand the instruction will produce. Instructions requiring that operand identify it using the identifier. The identifiers play the role of names of virtual registers that ca be used to implement register renaming.
+
+\paragraph{RS Fields} the reservation station is divided in more field like in figure below:
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\linewidth]{images/rsf.png}
+  \label{fig:rsf}
+\end{figure}
+where:
+\begin{itemize}
+  \item Op: Operation to be performed.
+  \item $V_j, V_k$: Values of the source operands.
+  \item $Q_j, Q_k$: Reservation stations that will produce a source operand.
+  \item A: Used in l/s buffer only. Immediate field and then effective address.
+  \item Busy: Status of the reservation station.
+\end{itemize}
+
+The \textbf{register file} contains, for each element, one field $Q_i$; that is the number of the reservation station that contains the instruction whose result should be stored in the register. If is \textit{null}, no currently active instructions computing a result destinated to this register.\\
+
+In figure \ref{fig:ers} an example of the reservation station for this code:
+\begin{lstlisting}
+L.D F6, 34(R2)
+L.D F2, 45(R3)
+MUL.D F0, F2, F4
+SUB.D F8, F2, F6
+DIV.D F10, F0, F6
+ADD.D F6, F8, F2
+\end{lstlisting}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{images/ers.png}
+  \caption{Reservation station of the example}
+  \label{fig:ers}
+\end{figure}
+The register file is represented in figure
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/erf.png}
+  \caption{Reservation station of the example}
+  \label{fig:erf}
+\end{figure}
+
+There are several advantages using this solution:
+\begin{itemize}
+  \item The hazard detection logic is distruited.
+  \item Stalls for WA and WAR hazards are elimnated.
+  \item Loop unrolling not required, naturally performed in parallel.
+\end{itemize}
+there are also some disadvantage:
+\begin{itemize}
+  \item High complxity hardware (including an associative buffer for each RS).
+  \item The CDB can be a bottleneck.
+\end{itemize}
+
+\subsection{Hardware-based Speculation}
+The HBS is a technique for reducing the effects of control dependences in a processor implementing dynamic scheduling. If a processor supports branch prediction with DS, it \textit{fetches} and \textit{issues} instructions, as if the branch prediction was always correct. If a processor support BHS, it also \textit{executes} them.\\
+The HBS combines three ideas:
+\begin{itemize}
+  \item Dynamic Branch Prediction
+  \item Dynamic Scheduling
+  \item Speculation
+\end{itemize}
+Is such way, the processor implements \textbf{data flow execution}: \textit{Operations execute as soon as their operands are available}.\\
+
+\paragraph{Architecture} it implements the basic Tomasulo's architecture, extending it to support speculation.\\
+There are two different steps in instruction execution:
+\begin{itemize}
+  \item The computation of results and their bypassing to other instructions.
+  \item The update od register file and memory, which is only performed when the instruction is no longer speculative (instruction commit); in this way, in-order commitment is implemented.
+\end{itemize}
+
+Is introducce a new datastructure, the \textbf{ReOrder Buffer} (ROB), it contains the instruction results while the instruction didn't commit yet. It provides additional virtual registers and integrates the store buffer existing in the origianl Tomasulo's architecture.\\
+In the TM's architecture already computed results are read from the register file. With speculation, data may be read:
+\begin{itemize}
+  \item from the ROB, if the producing instruction didn't commit yet.
+  \item from the register file, otherwise.
+\end{itemize}
+Each entry of the ROB has four fields:
+\begin{itemize}
+  \item Instruction Type: Branch, store, or register.
+  \item Destination: Register number, or memory address.
+  \item Value: Contains the value when the instruction has completed but still didn't commit.
+  \item Ready: Indicates whether the instruction completed its execution.
+\end{itemize}
+
+\paragraph{Steps} this solution provides four execution steps. The first is the \textbf{Issue} (or Dispatch) step:
+\begin{enumerate}
+  \item An instruction is extracted from the instruction queue id there is:
+  \begin{itemize}
+    \item an empty reservation station and
+    \item an empty slot in the reorder buffer.
+  \end{itemize}
+  If this not the case, the instruction issue is stalled.
+  \item The operands for the instruction are sent to the reservation station, if they are in the register file or in the reorder buffer.
+  \item The number of the reorder buffer entry for the instruction is sent to the reservation station to tag the instruction (and its results, when they will be written on the CDB).
+\end{enumerate}
+
+The \textbf{execute} step flow is:
+\begin{itemize}
+  \item The instruction is executed as soon as all the required operands are available (Avoid RAW hazards).
+  \item Operands are possibly taken from the CDB as soon as another instruction produces them.
+\end{itemize}
+The lenght of this step varies depending on the instruction type (e.g. 2 for load instructions, 1 for integer instruction and different values for FP instructions).
+
+Another important step is the \textbf{Write Result}:
+\begin{enumerate}
+  \item A soon as it is available, the result is put on the CDB (together with the tag identifying the instr.) and sent to the ReOrder Buffer.
+  \item Any RS waiting for the result reads it.
+  \item The RS is marked as available.
+\end{enumerate}
+
+The last step is the \textbf{Commit} (or Completion) step:\\
+The ReOrder Buffer is ordered according to instructions original order.\\
+As soon as one instruction reached the head od the buffer:
+\begin{itemize}
+  \item If it is a mispredicted branch, the buffer is flished, and the execution is restarted with the correct successor of the instruction.
+  \item Otherwise, the result is written in the register or in memory (in case of a store).
+\end{itemize}
+In both case the ROB, implemented as a \textit{circular buffer}, entry is marked as free.
+
+Since a dynamic renaming is implemented and memory updating occurs in-oder WAW or WAR hazards can't occurs. RAW hazards instead are prevented by:
+\begin{itemize}
+  \item Enforcing the program order while computing the effective address of a load wrt all earlier store instruction, and
+  \item not allowing a load to initiate its second step if any active ROB entry occupied by a store has a destination field matching the A field of the load.
+\end{itemize}
+
+Th \textbf{store} instructions write to memory when they commit, only. Therefor, their input operand is required when they commit, rather then in the WR stage. This means that the ROB should have a further field, specifying where the input operand for each store instruction should come from.\\
+\textbf{Exceptions} are not executed as soon as they are raised, but they are stored in ROB. When the instruction is committed, the possible exception is executed, and the following instructions flushed from the buffer.If the instruction is flushed from the buffer, the exception is ignored. Full precise exception handling is thus supported.\\
+
+When a time-expensive event (e.g. second-level cache miss, TLB miss) occurs speculatively, some processors wait for its execution until the event is no more speculative. On the other side, low-cost events (e.g. first-level cache miss) are nomally executed speculatively.
 
 \end{document}

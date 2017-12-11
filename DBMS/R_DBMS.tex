@@ -94,7 +94,7 @@ The \textbf{transaction} is an unit of work performed by an application, it's a 
 Atomicity means that they cannot be divided in smaller units, is not possibile to leave the system in a intermediate state of exec, guarantee by UNDO (undoes all the work perfomed, used for rollback) and REDO (redoes all work performed, used for commit the result in presence of failure). The consistency means that the transaction execution should not violate integrity constraints on a database, in case of it the system will perform solution to correct the violation. The system can be considered Isolated when the execution of a transaction is indipendent of the concurrent execution of other transaction, everything is enforced by the Concurrency Control block. The last properties means that, in presence of failures, the effect of a commited transaction IS NOT LOST, it guarantees the reliability of the DBMS and is enforced by the Reliability Manager block. % 3/9/17 @ 18:15
 
 \subsection{Buffer Manager}
-This block have a real important behaviour, it manages page transfer from disk to main memory and it's in charge of managing the DBMS buffer. The operation of the pages trasnfert is the bottleneck of every system and this is why this block is really important. increasing the performance of this operation could really improve the speed of the entire system.\\
+This block have a real important behaviour, it manages page transfer from disk to main memory and it's in charge of managing the DBMS buffer. The operation of the pages transfert is the bottleneck of every system and this is why this block is really important. increasing the performance of this operation could really improve the speed of the entire system.\\
 The buffer is:
 \begin{itemize}
   \item A large main memory block.
@@ -815,7 +815,7 @@ Also the recovery phase is a little bit modififed, the warm restart will read th
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
-
+\newpage
 \section{Data Warehouses}
 \subsection{Introduction}
 The database was delevoped for giving a service to the final users, like university, flight companies and other stuff. During the 80's they have understand that this system could be also used for made analisys over data. This analisys could be usefull for improving decision, forecast, cost reduction and other stuff.\\
@@ -1181,9 +1181,9 @@ The \textbf{cube} function is used for computing all aggregates of all possible 
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
-
+\newpage
 \section{Data Mining}
-\subsection{Introduction}
+\subsection{Introduction} \label{subsec:datamin_intro}
 During this year the companies the number of database and its size it increased a lot. All DB are potential source of useful information. Is know the our capacities of collecting data is really more the out capacity of analyzing it.\\
 The \textit{data mining} is:\\
 \noindent\fbox{
@@ -1338,7 +1338,7 @@ The final computation distance over 2 point with more attributes can be evaluate
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
-
+\newpage
 \section{Beyond Relational Databases}
 \subsection{Introduction}
 The first NoSQL databases was developed around 1998. The main difference are three:
@@ -1463,6 +1463,133 @@ To achieve this feature the are two possible solutions.
 \end{itemize}
 This is a faster but unreliable solution.
 
-%\subsection{Distributed databases} % 10BeyondRelData @ Pag. 17
+\subsection{Distributed databases}
+Different autonomous machines, working together to manage the same dataset. There are 3 typical problems in distributed databases:
+\begin{itemize}
+  \item \textbf{Consistency}: All distributed DB provide the same data to the application.
+  \item \textbf{Availability}: Database failures (e.g. Master Node) do not prevent survivors from continuing to operate.
+  \item \textbf{Partition} tolerance: The system continues to operate despite arbitrary message loss, when connectivity failures causes network partitions.
+\end{itemize}
+
+\paragraph{CAP Theorem} also know as Brewer's theorem, states that it is impossible for a distributed system to simultaneously provide all three of the previous guarantees. It becomes a theorem in the 2002. A representation in figure
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\linewidth]{images/cap.png}
+  \caption{Cap theorem chart}
+  \label{fig:cap}
+\end{figure}
+In general is not to difficult to be understand. Allowing at least one node to update state will cause the nodes to become inconsistent, thus forfeiting C. If the choice is to preserve consistency, one side of the partition must act as if it is unavailable, thus forfeiting A. Only when no network partition exist, is it possible to preserve both consistency and availability, thereby forfeiting P.\\
+The general delief is that for wide-area system, deesigners cannot forfeit P and therefore have a difficult choice between C and A. This is because is impossible to have a distributed systems without allowing network partition in case of failures, therefore is not still a distributed system.\\
+The \textbf{CP} solutions guarantee the consistency of the data, it similar to the 2-phase locking where an agreement is needed to commit the operations. This is means that everything is been blocked since all response have comed back. For example, guaranteeing C allows to show the correct availability for a product to all the Amazon's costumers. It can be really expensive because is better to manage situation where more people have bought only one item, rather than not sell it. In this case \textbf{AP} (a.k.a best effort) become a good solution, this sacrifice the consistency but it can guarantee a good service, even though the system as a shole has benn broken up into incommunicable regions (partitions). This situations not means that the global consistency is always broken, it only means that is \textbf{can't be guarantee all the time}.
+
+\bigskip
+``Each node in a system should be able to make decisions purely based on local state. If you need to do something under high load with failures occurring and you need to reach agreement, you’re lost. If you’re concerned about scalability, any algorithm that forces you to run agreement will eventually become your bottleneck. Take that as a given.''\\
+\rightline{{\rm --- \textbf{Werner Vogels}, Amazon CTO and Vice President}}
+\bigskip
+
+In general the the "2 of 3" view is misleading on several fronts. First, because partitions are rare, there is a little reason to forfeit C or A when the system is not partitioned. Second, the choice between C and A can occur many times within the same system at very fine granularity; not only can subsystem make different choices, but the choice can change according to the operation or even the specific data or user involved. Finally, all three properties are more continuous that binary. Availability is obviously continous from 0 to 100 percent, but there are also many levels of consistency, and even partitions have nuances.
+
+\paragraph{BASE} this kind of systems prefer to use a different properties respect the ACID one. The BASE consists in:
+\begin{itemize}
+  \item \textbf{Basically Available}: The system provides availability, in terms of the CAP theorem.
+  \item \textbf{Soft state}: Indicates that the state of the system may change over time, even without input, because of the eventual consistency model.
+  \item \textbf{Eventual consustency}: Indicates that the system will become consistenct over time, given that the system doesn't receive input during that time.
+\end{itemize}
+
+\subsection{Conflict resolution}
+Supposing that there are two customers, A and B. A books a hotel room, the last available. B does the same, on a different node of the system, which was not consistent. The hotel room document is affected by two conflicting updates. The applications should solve the conflict with custom logic (it's a business decision). The DB can:
+\begin{itemize}
+  \item Detect the conflict.
+  \item Provide a local solution, e.g., latest version is saved as the winning version.
+\end{itemize}
+In CouchDB is guarantee that each instance that sees the same conflict comes up with \textbf{same winning} and losing revisions. It does so by running a deterministic algorithm to pick the winner:
+\begin{itemize}
+  \item The revision with the longest revision history list becomes the winning revision.
+  \item If they are the same, the \_rev cvalues are compared is ASCII sort order, and the highest wins.
+\end{itemize}
+
+\subsection{HTTP RESTful API}
+This are an important characteristics of this systems. It's really easy to get a document, you only need to use your browser and write its url, e.g., \textit{http://localhost:5984/test/some\_doc\_id}. And so on. All operations have a proper procedure to be used, but this is beyond the pourpose of this course.
+
+\subsection{Conclusions} If you're building an app today, then there might be a need for using two or more databases at the same time, this is because there isn't a solutions that fits everything you need, some times using a more structured ways is preferred, some times is not usable. In general the choice depends on your needs, and it's probably that not just one DB can solve your problem.
+
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
+%--------------------------------------------------------------------------------------------------------
+\newpage
+\section{Big Data} % 8/12/17
+\subsection{Introduction}
+Big Data is about Seach, lot of bytes, storage and analytics. Big data not makes magic and it could give bad result if not performed well. Where get all this data? Of course from the web, mobile, social, sensors from healt to scientific, log files, IoT, and so on...\\
+One of the most common definition of BD is: "\textit{Data whose scale, diversity and complexity require new architectures, techniques, algorithms and analytics to manage it and extract value and hidden knowledge from it}".
+
+\paragraph{BigData Vs} There are some know Vs regarding BD, they are:
+\begin{itemize}
+  \item Volume: Scale of data
+  \item Variety: Different forms of data.
+  \item Velocity: Analysis of streaming data.
+\end{itemize}
+Other 2 important think were added during times:
+\begin{itemize}
+  \item Veracity: Uncertainty of data.
+  \item Value: Exploit information provided by data.
+\end{itemize}
+
+The volume of our data growth really really faster, we speaking now of thousant of terabytes normally. They increase in exponential way, the forecast say that in 2020 will reach decines of petabytes. The variety of this kind of data is impressive, from numerical to image, audio, text, video and so on... A single application may generate many different formats. The data could be fast as you can't store it, like the stream, you look at it only in a short time window, for reacting of for logging it in a different way, and just it has generated, because storing it would be crazy and unuseful. Speaking about data quality become really important, since this data is logged automatically is important to detect fault, e.g crazy temperature sensor, or other stuff that can ruin all your data. More data you have, more important become the quality. The last important V is the value, in some cases the analysis of big data can be translated to business advantage and this is really interesting.
+
+\paragraph{Challenges} There are a lot of new challenges related to the BD usage:
+\begin{itemize}
+  \item Technology \& Infrastructure: A lot of new architecture, programming paradigms and techniques are needed. \textit{Transfer the processing power to the data} (Hadoop ecosystem).
+  \item Data management \& Analysis: New emphasys on "data" $\rightarrow$ Data Science.
+\end{itemize}
+
+\subsection{Data Science} is: "\textit{Extracting meaning from very large quantities of data}" is an abused word nowadays because the big is not really defined and every kind of analysis over data seems data science. DS collects a lot of different stuff, statistics, machine learning, visualization, pattern recognition, ecc... The data science process is based on the KDD already mentioned in \ref{subsec:datamin_intro} paragraph.
+
+\paragraph{Value chain} the process to the data science is chematized in figure below:
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/chain.png}
+  \label{fig:chain}
+\end{figure}
+\noindent The step are:
+\begin{itemize}
+  \item \textbf{Generation}:
+  \begin{itemize}
+    \item Passive Recording: Typically structured data, like bank transaction, shopping records, government, ecc...
+    \item Active Generation: Semistructured or unstructured data, like User generated content...
+    \item Automatic Production: Location-aware, context-dependent, highly mobile data, sensor-based internet-enabled devices, ecc...
+  \end{itemize}
+  \item \textbf{Acquisition}:
+  \begin{itemize}
+    \item Collection: Pull or push.
+    \item Transmission: transfert with high capacity link.
+    \item Processing: Integration, cleaning  and redundancy elimination.
+  \end{itemize}
+  \item \textbf{Storage}:
+  \begin{itemize}
+    \item Storage Infrastructure: HDD, SSD, DAS, NAS, SAN, ecc...
+    \item Data Management: File System (HDFS), key-value stores (memchached), column-oriented, document-based, ecc...
+    \item Programming Models: Map reduce, stream processing and graph processing.
+  \end{itemize}
+  \item \textbf{Analysis}:
+  \begin{itemize}
+    \item Objectives: Descriptive, predictive or prescriptive analytics.
+    \item Methods: Satistical analysis, data mining, network, clustering, ecc...
+  \end{itemize}
+\end{itemize}
+
+\paragraph{Difference} traditional systems use database and datawarehouse with well-defined strucuture small enough to be fitted to the machines. In big data the dataset is not suitable for database and it's why new solution like HDFS has been developed, may need near real-time analysis that is a different approch from data warehousing. There are also a lot of different programming paradigms.\\
+Also the processing phase is changed, the traditional computation is processor bound and required a data trasfert from disks to CPUs to be processed this could be a problem because during these years the storage capacity has grown a lot, but the speed not the same...\\
+The solutions is to \textit{transfert the processing power to the data} it means that the various CPUs will compute only the subset of data that they have near in order to avoid data transfert. The problem is that this solution is not problem free, it must manage, hardware failure, network data transfert, data loss, ecc... Everything is managed by Hadoop in figure \ref{fig:hadoop}.
+\begin{figure}[hp!]
+  \includegraphics[width=\linewidth]{images/hadoop.png}
+  \label{fig:hadoop}
+\end{figure}
+The principles ideas are:
+\begin{itemize}
+  \item Distribute data across nodes automatically.
+  \item Processing executed on local data.
+  \item No need of data transfert to start.
+  \item Auto replication.
+  \item Developer need only to focus over the logic.
+\end{itemize}
 
 \end{document}
