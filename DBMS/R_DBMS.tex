@@ -292,7 +292,7 @@ There are two types of execution modes:
 The phase of \textbf{Algebraic Optimization} require a little more of analysis. The part is bbased on equivanlence trasformations, \textit{two relational expressions are equivalent if they both produce the same query result for any arbitrary database instance}. The main objective of this part is to \textbf{reduce the size of the intermediate result}.\\
 There are some well-know transformation:
 \begin{enumerate}
-  \item \textbf{Atomization of selection}: Applying all attributes of selection one at the time or all together can provide different performance in case of indicies.
+  \item \textbf{Atomization of selection}: Applying all attributes of selection one at a time or all together can provide different performance in case of indicies.
   \item \textbf{Cascading Projections}: It possibile to perform directly the final projection o doing more projections with different sub-set and you can obtain the same result.
   \item \textbf{Selection before join}: Anticipating the selection respect a join-operation can reduce the cardinality of the system reducing the number of operations for the join (is always used by the DBMS).
   \item \textbf{Join derivation from Cartesian Product}: Perform a cartesian product and then a selection over data get the same result as the join operation but more slowly.
@@ -740,7 +740,7 @@ the \textbf{3-TIER} solution istead:
   \item DBMS Server: Provides access to data.
 \end{itemize}
 
-\paragraph{Distributed} system are accessed by many user at the time. Each user can be also access more than one DBMS server. Each server need to have a local autonomy, each manages its local data, concurrency control, recovery, ecc... The localization instead could be the most important difference respect c/s system, this can perform a geographical distribution. Also the data availability, less probability off total block, but more in terms of local block. Least but not last, the scalability.
+\paragraph{Distributed} system are accessed by many user at the time. Each user can be also access more than one DBMS server. Each server need to have a local autonomy, each manages its local data, concurrency control, recovery, etc... The localization instead could be the most important difference respect c/s system, this can perform a geographical distribution. Also the data availability, less probability off total block, but more in terms of local block. Least but not last, the scalability.
 
 \paragraph{Design} given a relation R, a data fragment is a subset of R in terms of
 \begin{itemize}
@@ -829,7 +829,7 @@ The data ware house is a database devoted to decision support, which is kept sep
 all data related to the timestamp are bigger than the other.\\
 The data are kept separated for multiple questions:
 \begin{itemize}
-  \item \textbf{Performance}: Complex queries reduce performance. Data may varies during operation, ecc... The system could be developed for doing some operations but the warehousing use the system in a different way.
+  \item \textbf{Performance}: Complex queries reduce performance. Data may varies during operation, etc... The system could be developed for doing some operations but the warehousing use the system in a different way.
   \item \textbf{Data Management}: The data for the service could be different from the data needed for the analytics. (ex. Data addresses changing). There could be also inconsistency problem.
 \end{itemize}
 One of the rappresentation solution proposed is the (hyper)cube with three or more dimensions (figure \ref{fig:hypercube}).
@@ -838,7 +838,7 @@ One of the rappresentation solution proposed is the (hyper)cube with three or mo
   \caption{Hypercube rappresentation}
   \label{fig:hypercube}
 \end{figure}
-In this solution the cross of the three axes could be our important data, 3 like number of Milk sales in 2-3-2000 by the SupShop or the total amount in \$ ecc... The empty cells rappresent an inconsistency data, product not sales in that day.\\
+In this solution the cross of the three axes could be our important data, 3 like number of Milk sales in 2-3-2000 by the SupShop or the total amount in \$ etc... The empty cells rappresent an inconsistency data, product not sales in that day.\\
 The hypercube is a rappresentation based on the relational rappresentation, the STAR MODEL. This model have:
 \begin{itemize}
   \item Numerical measures: Value stored in the fact table. (ex. \#sales)
@@ -851,7 +851,7 @@ in figure \ref{fig:star} the Dimensions are \textit{Shop, Date and Product} and 
   \label{fig:star}
 \end{figure}
 An important analisys is related to the dimensions of the data warehouse, supposing: to store 2 years of data, for 300 shops for 3000 product sold every day in every shop, the fact table reach the dimensions of 660 milions of row (around 20GB of data).\\
-The main operations over this kind of data is the computation with aggregated functions, with more complex operand (moving average, top ten, ecc...) or applications of data mining techniques. This important evaluation are unusefull if the data is presentate bad.
+The main operations over this kind of data is the computation with aggregated functions, with more complex operand (moving average, top ten, etc...) or applications of data mining techniques. This important evaluation are unusefull if the data is presentate bad.
 \paragraph{Architecture} the system is build on several block:
 \begin{itemize}
   \item Data Sources: External source, the DB.
@@ -930,7 +930,7 @@ The data mart design:
 \end{itemize}
 The application requirements, what we need to keep in the data mart, are different:
 \begin{itemize}
-  \item Description of relevant facts: Could be sales, phone call, investements, ecc... With its usefull information (dimension). Granularity and time span.
+  \item Description of relevant facts: Could be sales, phone call, investements, etc... With its usefull information (dimension). Granularity and time span.
   \item Workload: From already existent report generate new report. Other stuff produced in natural language.
 \end{itemize}
 There are also some structural requirements:
@@ -944,7 +944,7 @@ There are also some structural requirements:
 \paragraph{Conceptual Design} there isn't a standard model for this of kind of design, the dimensional fact model is proposed from Golfarelli e Rizzi in their book. This model define, for a given fact, dimensions, hierarchies and measures. The part are, figure \ref{fig:conce}:
 \begin{itemize}
   \item \textbf{Fact}: It evolvs in time modelling a relevant events (ex. sales).
-  \item \textbf{Dimension}: Describes the coordinate of the fact (ex. sales date, shop, ecc...).
+  \item \textbf{Dimension}: Describes the coordinate of the fact (ex. sales date, shop, etc...).
   \item \textbf{Measure}: Describes a numerical property of the fact (ex. number of sold unit).
 \end{itemize}
 \begin{figure}[h!]
@@ -978,7 +978,7 @@ The measure can be additive, not additive (by SUM), not aggregable. Measure can 
 \end{itemize}
 When is possible to compute aggregate from view of already aggregated value these operators are called \textbf{distributive}. Not all operators are distributive, AVG is \textbf{algebraic}, these types can compute higher level aggregations from more detailed data only when supplementary support measures are available. There is also another type called \textbf{Olistic} that can't compute aggregate from more detailed data.
 
-\paragraph{Time Representation} the data modification over time is explicitly represented by the event (ex. time of buying, timestamp measurement). Also dimension could be change, the number of professors, the number of stores, ecc... The only difference is related to the speed of change, this is named \textit{slowly changing dimension}.\\
+\paragraph{Time Representation} the data modification over time is explicitly represented by the event (ex. time of buying, timestamp measurement). Also dimension could be change, the number of professors, the number of stores, etc... The only difference is related to the speed of change, this is named \textit{slowly changing dimension}.\\
 The first (\textbf{TYPE I}) solution of this problem is to overwrite the data with the current value, this is used when the change is not important for the system like solving an error in a surname. This project the new situation over the past events. The second (\textbf{TYPE II}) solution is to directly correlate the events with the corresponding dimension value. This could be achived partitioning the data and creating a instance of the dimension. For example, \textit{Purchases performed by \underline{married} Mario Rossi} and \textit{Purchases performed by \underline{unmarried} Mario Rossi}.
 The last solution (\textbf{TYPE III}) is similar to the type II because it create a new instance of the dimension, but it introduce a validity time stamp (start/end) for the dimension and a new attribute which allows to identify the root of the all dimension. The main utility of the last type is the projection to the future or to the past of and identity.\\
 
@@ -988,7 +988,7 @@ For example:\\
 The third solution must be used only if the system really need this because could be really coplicated to be mantained.
 
 \paragraph{Other} the workload must be defined during the design phase, this can depends on user number, complexity and dimension. Probably a phase of tuning will be necessary for improving the system work.\\
-The estimation of data volume is necessary due to a correct development of the system. Everything must be considered, from indicies, to materialized view, to time span, attribute length, ecc.. This because this type of structure everything could become really big. Difficulties on volume estimation come from sparsity, because when we reducing granularity, with a high sparse cube, the reduction factor could be greater that expected.
+The estimation of data volume is necessary due to a correct development of the system. Everything must be considered, from indicies, to materialized view, to time span, attribute length, etc.. This because this type of structure everything could become really big. Difficulties on volume estimation come from sparsity, because when we reducing granularity, with a high sparse cube, the reduction factor could be greater that expected.
 
 \paragraph{Logical Design} this phase start from the relational model (ROLAP):
 \begin{itemize}
@@ -1058,7 +1058,7 @@ The views are SQL statement,  generated starting from base tables or view with h
 \end{itemize}
 
 During the physical development of a data warehouse is important to manage the workload. The queries are computed with a lot of aggregation level and they will probably access to an huge part of each table involved. One of the main advantage of this system is the they are read-only and they don't require to be modififed. A periodical scheduled refresh is needed to keep the data valid, also indicies and other stuff.\\
-Respect the OLTP this type of system use different index types like bitmap, join, bitmapped join index, ecc...\\
+Respect the OLTP this type of system use different index types like bitmap, join, bitmapped join index, etc...\\
 An important phase of the development is the tuning where, looking at the real utilization behaviour the system if fitted to improve performance during real-life application. This phase is also used in case of structural changes. In more complex environment the parallelism become important, it can really increase the performance.\\
 The index selection is performed on:
 \begin{itemize}
@@ -1078,7 +1078,7 @@ Indexing only foreing keys in the fact table is rarely appropriate because the i
 The process is eased by using the staging area. In general this phase is different if the system is during the first load or if is a periodical update/\\
 The \textbf{extraction} acquire the data from the sources. If is the first time performa a \textit{static} extraction grabbing snapshot of operational data. If is an update, it will use an \textit{incremental} solution to extracting data since the last update only. In case of multiple sources is important to choose the best one. Of course is important to analyze how the data is collected:
 \begin{itemize}
-  \item \textbf{Historical}: All modification, with a datastamp, are stored for a given time in the OLTP system (bank transaction, exam, ecc...).
+  \item \textbf{Historical}: All modification, with a datastamp, are stored for a given time in the OLTP system (bank transaction, exam, etc...).
   \item \textbf{Partly Historical}: Not all the modification are stored, only a limited number of state.
   \item \textbf{Trasient}: Only the current data state is keeps on the OLTP.
 \end{itemize}
@@ -1107,7 +1107,7 @@ The \textbf{trasformation} required data conversion from the operational to the 
   \item From reconcilied to the data warehouse.
   \begin{itemize}
     \item Surrogate keys generation
-    \item Aggregation computation (view, fact table, indices, ecc...)
+    \item Aggregation computation (view, fact table, indices, etc...)
   \end{itemize}
 \end{itemize}
 the dimesion table loading is represented in figure \ref{fig:dimload} and the fact table loading in figure \ref{fig:factload}.
@@ -1168,7 +1168,7 @@ Some consideration over this function: The sort order is required altought the c
 both of this solution can implement a variable window using PRECEDING, BETWEEN and FOLLOWING. Is also posbbile to defined an UNBOUNDED window that change its size during that computation using only one fixed bound, useful for cumulative total. The difference is that the physical one not look at missing rows and is possibile to order by more than one keys. Altought the logical can perform ordering only over numerical or data type where a distance can be defined and only by one key at the time. Another important characteristics is the possibility to compare detailed and total data without problem.\\
 There is also a Ranking function that computes the rank of a value inside a partition, it could be of 2 types, \textbf{rank()} that computes the rank by leaving an empty slot after a tie, and \textbf{denserank()} that rank by leaving an empty slot after a tie. Of course this function requires an ordering altought would be meaningless, the partition is not necessary because it can compute also over the whole table. Is important to notice that the order by of the over is not the visualizing order, but is only the order for the ranking, if a ordered visualization is needed an external group by is compulsory.\\
 The main important extension is related to the \textit{group by} that allows to compute multiple aggretation without performing separte query, this increase the efficency of the whole system.\\
-Using the rollup function over that computes multiple aggregates one at the time. The order in the expression is fundamental, it will compute the aggregate starting with all attribute and removing it one by one from right to left. The visualization of this computation have NULL value to represents the superaggregates, an example in figure \ref{fig:rollup}.
+Using the rollup function over that computes multiple aggregates one at a time. The order in the expression is fundamental, it will compute the aggregate starting with all attribute and removing it one by one from right to left. The visualization of this computation have NULL value to represents the superaggregates, an example in figure \ref{fig:rollup}.
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.8\linewidth]{images/rollup.png}
@@ -1191,8 +1191,8 @@ The \textit{data mining} is:\\
 }\bigskip
 
 Of course, our pourpose, is to extract in an automatic way the information to represent it with abstracted models denotated pattern.\\
-One example of this technique application is the profiling from e-commerce, search engines, social, georeference data, ecc... These profling will be used for mirated advertisement, market basket analysis, brand reputation, sentiment analysis, ecc...\\
-Another important application of these techniques could be the biological data analysis for mapping DNA, demographic data, illnesses diffusion, ecc...\\
+One example of this technique application is the profiling from e-commerce, search engines, social, georeference data, etc... These profling will be used for mirated advertisement, market basket analysis, brand reputation, sentiment analysis, etc...\\
+Another important application of these techniques could be the biological data analysis for mapping DNA, demographic data, illnesses diffusion, etc...\\
 The flow of the data analysis is named KDD, \textit{Knowledge Discovert from Data}, a rappresentation in figure \ref{fig:kdd}.
 \begin{figure}[h!]
   \centering
@@ -1248,13 +1248,13 @@ There are several data set types:
   \end{itemize}
 \end{itemize}
 
-The tabular data is a collection of record characterized by a fixed set of attributes. Presenting documents data is performed transforming it in a vector of terms. In this cases an important phase is the filtering of stock word (grammar article, word to singular, verbs to infinite, ecc...).\\
+The tabular data is a collection of record characterized by a fixed set of attributes. Presenting documents data is performed transforming it in a vector of terms. In this cases an important phase is the filtering of stock word (grammar article, word to singular, verbs to infinite, etc...).\\
 There are different types of attribute:
 \begin{itemize}
-  \item \textbf{Nominal}: ID Numbers, eye color, zip codes, ecc... (D)
-  \item \textbf{Ordinal}: Rankings, grades, height, ecc... (DO)
-  \item \textbf{Interval}: Calendar dates, temperatures, ecc... (DOA)
-  \item \textbf{Ratio}: temperature Kelvin, lenth, time, counts, ecc... (DOAM)
+  \item \textbf{Nominal}: ID Numbers, eye color, zip codes, etc... (D)
+  \item \textbf{Ordinal}: Rankings, grades, height, etc... (DO)
+  \item \textbf{Interval}: Calendar dates, temperatures, etc... (DOA)
+  \item \textbf{Ratio}: temperature Kelvin, lenth, time, counts, etc... (DOAM)
 \end{itemize}
 the types depends on which of the following prepertis it possesses:
 \begin{itemize}
@@ -1343,7 +1343,7 @@ A collection of a transaction is:
   \item Set of items.
   \item Without order correlations between them.
 \end{itemize}
-The association rule extraction is an exploratory technique that can be applied to any data type. It can also be applied over textual data document, ecc...\\
+The association rule extraction is an exploratory technique that can be applied to any data type. It can also be applied over textual data document, etc...\\
 
 \paragraph{Definitions} An association rule is compesed by multiple parts:
 \begin{itemize}
@@ -1408,7 +1408,7 @@ Of course this method is computationally unfeasible. The fisrt variation from th
   \item Generate frequent (passing the threshold) itemsets.
   \item Generate rules from each frequent itemset.
 \end{enumerate}
-The two step above have a lot of problem anyway, the first one can be performed with different techniques like Apriori, FP-growth, ecc.. Best it still remain computionally expensive. The second one is more standard and it can be improved too much and is the generation of all possible binary partitioning of each frequent itemset. The BF approch have a huge complexity \textasciitilde $ O(|T| 2^d w)$ where d is the number of items and w the transaction length.\\
+The two step above have a lot of problem anyway, the first one can be performed with different techniques like Apriori, FP-growth, etc.. Best it still remain computionally expensive. The second one is more standard and it can be improved too much and is the generation of all possible binary partitioning of each frequent itemset. The BF approch have a huge complexity \textasciitilde $ O(|T| 2^d w)$ where d is the number of items and w the transaction length.\\
 How to improving the efficiency?
 \begin{itemize}
   \item Reduce the number of candidates.
@@ -1487,8 +1487,7 @@ Frequent pattern mining by means of FP-growth:
   \item Recursive visit of FP-tree.
   \item Divide-and-counquer approach.
 \end{itemize}
-This solution require only two databse scans.\\
-The construction of the FP-tree is based on three steps:
+This solution require only two databse scans. The construction of the FP-tree is based on three steps:
 \begin{enumerate}
   \item Count item support and prune items belowe minsup threshold.
   \item Build Header Table by sorting items in decreasing support order.
@@ -1505,28 +1504,487 @@ The construction of the FP-tree is based on three steps:
     \end{itemize}
   \end{itemize}
 \end{enumerate}
-% DMassrules @ Pag.55 - New Lessons n.38
+At the end, also some pointer directly to the point and between all point is created, are called item pointer.\\
+The algorithm of the FP-growth is based on 2 simple steps:
+\begin{enumerate}
+  \item Scan header table from lowest suppot item up.
+  \item For each item \textit{i} in header table extract frequent itemsets including item \textit{i} and items preceding it in Header Table:
+  \begin{enumerate}
+    \item Build \textbf{Conditional Pattern Base} for item \textit{i} (\textit{i}-CPB): Select prefix-paths of items \textit{i} from FP-Tree.
+    \item Recursive invocation of FP-growth on \textit{i}-CPB.
+  \end{enumerate}
+\end{enumerate}
+\textit{The example is too large to be write here, looks at 3-DMassrules from the slides course}.\\
+Some other solution are implement like the vertical data layout, etc...\\
 
+One of the main problem of these systems is the waste of space of the rappresentation. This is why a compact repersentation is needed.
+An itemset is \textbf{Maximal Frequent} if none of its supersets is frequent, of course it can be computed only with a border line defined by the support, althought it loose is sense.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/MFI.png}
+  \caption{Maximal Frequent Itemset}
+  \label{fig:MFI}
+\end{figure}
+In figure \ref{fig:MFI}, there are some highlighted elements AD, ACE and BCDE, they are MFI because there no other items longer then them with a sufficient frequency, infrequent, to be kept. They are useful because they can collapse a lot of informations. Some algorithms for generating it was developed.\\
+Another important label for the itemsets is the \textbf{Closed Itemset} that occurs when if none of its immediate supersets has the same support as the itemset. In the case of table below:
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.2\linewidth]{images/CI.png}
+  %\caption{Maximal Frequent Itemset}
+  \label{fig:CI}
+\end{figure}
+The itemset \{A\} is not a CI because there is another itemset, longer, that include A with the same support of it and it's \{A,B\}, both for itemset \{D\} because it as the same support of \{D,B\} but is shorter. Is short word they are the longest itemset for a given length. The main difference respect the MFI is that they reduce the number of the itemsets but without losing information, you can generate all itemsets from them. Of course a Maximal is always a closed itemset.\\
 
+One of the most hard choice is the selection of an appropriate \textit{minsup} threshold:
+\begin{itemize}
+  \item Too \textbf{high} \textit{minsup}: Itemset including rare but interesting items may be lost.
+  \item Too \textbf{low} \textit{minsup}: Computionally very expensive, very large number of frequent itemsets.
+\end{itemize}
 
+A large number of pattern may be extracted, a solution is to rank patterns by their interestingness. For objective measures it useful to rank patterns based on statistics computed from data. There are also subjective measures that rank patterns according to user interpreatation.
 
+\paragraph{Confidence measure} is the confidence always a reliable measure? No, this example will explain why:\\
+In high school of 5000 students:
+\begin{itemize}
+  \item 3750 Eat Cereals
+  \item 3000 Play basket
+  \item 2000 Eat cereals and play basket
+\end{itemize}
+One of the extractable rule is: Play Basket $\Rightarrow$ Eat Cereals (Sup = 40\%, Conf = 66.7\%) and is misleading because eat cereals has sup 75\% (that is greater than 66.7\%). The problem is caused by the high frequency of rule head ("eat cereals"). Data used are:
+\begin{center}
+  \begin{tabular}{ |c|c|c|c| }
+    \hline
+    & \textbf{Basket} & \textbf{Not Basket} & \textbf{Total}\\
+    \hline
+    \hline
+    Cereals & 2000 & 1750 & 3750\\
+    \hline
+    Not Cereals & 1000 & 250 & 1250\\
+    \hline
+    TOTAL & 3000 & 2000 & 5000\\
+    \hline
+  \end{tabular}
+\end{center}
+The solution to this problem is using another measurement called \textbf{Correlation} or \textbf{Lift}. The formula is:
+\begin{equation}
+  \begin{gathered}
+    r: A \Rightarrow B\\
+    Correlation = \frac{P(A,B)}{P(A)P(B)} = \frac{conf(r)}{sup(B)}
+  \end{gathered}
+\end{equation}
+The result will be:
+\begin{itemize}
+  \item Statistical Independence: C = 1
+  \item Positive Correlation: C > 1
+  \item Negative Correlation: C < 1
+\end{itemize}
+Using the previous data the correlation become:
+\begin{itemize}
+  \item Play Basket $\Rightarrow$ Eat Cereals: C = 0.89 (Negative Correlations)
+  \item Play Basket $\Rightarrow$ Not(Eat Cereals): C = 1.34
+\end{itemize}
 
+\subsection{Classification}
+The classification is the process used to predict the class label. The process start from a training data, already classified by definition, the phase will generated a model. When unclassified data is passed through the model can be classified. A schema of classification process in figure \ref{fig:class}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/class.png}
+  \caption{Classification process}
+  \label{fig:class}
+\end{figure}
+There are several different approaches to the classification problem and they can be classified by its characteristics like accuracy, interpretability, scalability and noise/outliers management. Given a:
+\begin{itemize}
+  \item Collection of class labels
+  \item Collection of data objects labelled with a class label
+\end{itemize}
+the goal is to find a descriptive profile of each class, which will allow the assignment of unlabeled objects to the appropriate class. After the training process is important to check the quality of the model, this is perfomed using a test set that is a collection of labeled data objects used to validate the calssification model, most of the time is directly direved from the training set.
 
+\paragraph{Decision Trees} are the simplest method of classifing. The main structure is a tree where will flow some data to be checked by all different nodes to providing a classification. The process will end when, a block of data, reach a leaf (termination node, blue) where there is a classification class tag. This  An example in figure \ref{fig:dt}.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/dt.png}
+  \caption{From data to decision tree}
+  \label{fig:dt}
+\end{figure}
+Each internal nodes is a splitting attribute, the number of exiting arch is correlated to the number of different value of the attributes, it could be binary or more.\\
+The first algorith to build a decision trees is the Hunt's, nowadays the ID3 or C5.0 are more used. The flow is:
+\begin{itemize}
+  \item If $D_t$ contains records that belong to the same class $y_t$: Then is a leaf node labeled as $y_t$
+  \item If $D_t$ contains records that belong to more than one class:
+  \begin{enumerate}
+    \item Select the "best" attribute A on which to split $D_t$ and label node t as A.
+    \item Slipt $D_t$ into smaller subsets and recursively apply the procedure to each subset.
+  \end{enumerate}
+  \item If $D_t$ is an empty set: The t is a leaf node labeled as the default (majority) class, $y_d$.
+\end{itemize}
+All this flow is achieved with a greedy strategy, an exshaustive search will be superflous. The best attributes for the split is selected locally at each step (not a global optimum). The main problem are related to the kind of test condition, the selection of the best and the stopping condition.\\
+The structure of test condition depends on attribute type that could be: nominal, ordinal and continuous and it depends on number of outgoing edges, 2 or multy-way split. The splitting can be of 2 different types, multy-way that it use as many partitions as distinct values, o binary that divide all the values in 2 subset or that have only teo distinct possible values. In case of continuos attributes there are different techniques:
+\begin{itemize}
+  \item Discretization: The subset are created using average, percentiles, clustering. They can be Static, defined at once the beginning, or dynamic, discretized during the tree iduction.
+  \item Binary: Considering all possible splits and find the best cut (computationally intensive).
+\end{itemize}
+The selection of the best attribute is really important, our goal is to reach the end of the process, a leaf, as fast as possible, this is achieved by having a subset with only value of a single class. Using an attribute that not divide our data in "good" partitions, become unuseful, non-homogeneous and high degree of impurity (\textit{"Own car?"}). Defining good partition that collect a lot of data of a single class is important, more homogeneous, low degree of impurity (\textit{"Car type?"}). Also dividing is too much way is a waste of resources, not all attribute are profits for our tasks (\textit{"Student ID?"}). An example in figure \ref{fig:attr_sel}.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/attr_sel.png}
+  \caption{Attribute selection}
+  \label{fig:attr_sel}
+\end{figure}
+How evaluate the impurity? The \textbf{gain} is the must used, it evaluate the density of the different classes before the splitting (M0), it apply two or more attribute and that it recompute the density after that applies (MA, MB), at the end it will compare the difference between the M0, MA and M0, MB and it will kept the purest one.\\
+Another weel know index of purity is the \textbf{GINI}, that is, for a given node t:
+\begin{equation}
+  \begin{gathered}
+    GINI(t) = 1 - \sum_{j} [p(j|t)]^{2}
+  \end{gathered}
+\end{equation}
+The value is:
+\begin{itemize}
+  \item Maximum (1-1/\#ofClass): When the records are equally distributed among all classes, higher impurity degree.
+  \item Minimum (0.0): When all records belong to one class, implying a lower impurity degree.
+\end{itemize}
+The idea is to divide the set in a weight way, a little but "more pure" class will have a greater weight, a big but "less pure" class will have a littler weight. All is achieved by using the formula:
+\begin{equation}
+  \begin{gathered}
+    GINI_{split} = \sum_{i=1}^{k} \frac{n_i}{n} GINI(i)
+  \end{gathered}
+\end{equation}
+where $n_i$ is the number of records at child i and n is the number of records at node p. In case of continuos attribute the system will start from the present value of that attribute and than it will try all the possibile splitting value to evaluate the best (GINI Index) solution, an example in figure .
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/gini_cont.png}
+  \caption{GINI index for continous attribute}
+  \label{fig:gini_cont}
+\end{figure}
+Another well-know solution is the INFO (or Entropy impurity measure). The main difference is how this two index label the value. The entropy value is more "pessimistic" than the GINI one, because, for the same set, will give a worst quality of purity index for a class with a not-high impurity. In figure is easy to understand.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/gini-info.png}
+  \caption{GINI and INFO comparisons}
+  \label{fig:gini-info}
+\end{figure}
 
+\paragraph{Stopping Criteria} the termination, for the Tree Induction, occurs in 3 different cases:
+\begin{itemize}
+  \item Stop exapanding a node when all the records belong to the same class.
+  \item Stop exapanding a node when all the records have similar attribute values.
+  \item Early termination.
+\end{itemize}
 
+\paragraph{Pro \& Cons} the decision tree based calssification have the advantages of:
+\begin{itemize}
+  \item Inexpensive to construct.
+  \item Extremely fast at classifying unknow records.
+  \item Easy to interpret for small-sized trees.
+  \item Accuracy is comparable to other classification techniques for many simple data sets.
+\end{itemize}
+Instead, the main disadvantage is:
+\begin{itemize}
+  \item Accuracy mat be affected by missing data.
+\end{itemize}
+There are also some well-know issues related to this classification:
+\begin{itemize}
+  \item Under-over fitting.
+  \item Missing values.
+  \item Cost of classification.
+\end{itemize}
+The first issues occurs when the generated tree is too specific (high number of nodes) for the training set, it means that the error rate will increase during is application. The under fitting is the problem of having few nodes that implies a not very precise model. In figure \ref{fig:under_over} the underfitting border is when the blue curve become more stable (around 80 nodes).
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/under_over.png}
+  \caption{Under and over fitting problem}
+  \label{fig:under_over}
+\end{figure}
+This problem is solved using the \textbf{pruning}. The PRE-pruning:
+\begin{itemize}
+  \item Stop the algorithm before it becomes a fully-grown tree.
+  \item Typcal stopping conditions are:
+  \begin{itemize}
+    \item If all instances belong to the same class.
+    \item If all the attribute values are the same.
+  \end{itemize}
+  \item Other more restrictive conditions:
+  \begin{itemize}
+    \item User defined threshold for the number of instances.
+    \item If class distribution of instances are independent of the available features.
+    \item If the exapanding will not improve the impurity measure.
+  \end{itemize}
+\end{itemize}
+The POST-pruning solution:
+\begin{itemize}
+  \item Grow decision tree to its entirety.
+  \item Trim the nodes of the decision tree in a bottom-up fashion.
+  \item If generalization error improves after trimming, replace sub-tree by a leaf node.
+  \item Class label of leaf node is determined from majority class of isntances in the sub-tree.
+\end{itemize}
+This is why the test set MUST NOT be the same of the training.\\
+The handling of missing attribute values is important. They affect the tree decision construction in three ways:
+\begin{itemize}
+  \item How impurity measures are computed.
+  \item How to distribute instance with missing value to child nodes.
+  \item How a test instance with missing value is classified.
+\end{itemize}
 
+\paragraph{Search Strategy} Finding an optimal decision tree is NP-hard. The algorithm presented so far uses a greedy, top-down, recursive partitioning strategy to induce a reasonable solution. There are other strategies like bottom-up and bi-directional. The best situation where apply the decision tree is when the data is easy to be split in different class using boundaries parallels to the axes (\ref{fig:tree_good}). When the problem isn't solvable in this way is better to use different approaches (\ref{fig:tree_bad}).
+\begin{figure}[h!]
+  \centering
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/tree_good.png}
+    \caption{Good use}
+    \label{fig:tree_good}
+  \end{minipage}\hfill
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/tree_bad.png}
+    \caption{NOT Good use}
+    \label{fig:tree_bad}
+  \end{minipage}\hfill
+\end{figure}
 
+\paragraph{Rule Classification} Another possible technique is to classify records by using a collection of \textit{"if...then..."} rules. The result of applying this methods could be of three type:
+\begin{itemize}
+  \item Row matched by one rule.
+  \item Row matched by more rules.
+  \item Row not matched.
+\end{itemize}
+Rules can have two characteristics:
+\begin{itemize}
+  \item Mutually exclusive: Rules are independent of each other. Every record is covered by at most one rule.
+  \item Exhaustive Coverage: If it accounts every possible combination of attribute values. Each record is covered by at least one rule.
+\end{itemize}
+Is possible to translate a Decision Tree to a Rule-based classification. The rules just created are ME and EC by definition because you can follow only one path at the time of the tree. Simplifying the rules could cause the lose of the ME, in these case a record may trigger more than one rule, the possible solutions are:
+\begin{itemize}
+  \item Ordered rule set.
+  \item Unordered rule set - Use voting schemes.
+\end{itemize}
+When the lose is over the exhaustivity, having a record that not trigger any rules, the solution is using a default class (majority).\\
+The advantages of this kind of classification are:
+\begin{itemize}
+  \item As highly expressive as decision tree.
+  \item Easy to interpet.
+  \item Easy to generate.
+  \item Can classify new instances rapidly.
+  \item Performance comparable to decision tree.
+\end{itemize}
 
+\paragraph{Associative Classification} This model is defined by means of association rules: (Condition) $\rightarrow$ y, where the body is an itemset. This scheme not look at one item at the time but to both (item, value) togheter, the difference is in the model generation:
+\begin{itemize}
+  \item Rule Selection \& Sorting: Based on support, confidence and correlation thresholds.
+  \item Rule Pruning: Database coverage, the training set is covered by selecting topmost rules according to previous sort.
+\end{itemize}
+Some PRO of this approach are:
+\begin{itemize}
+  \item Interpretable model.
+  \item Higher accuracy that DT (correlation among attributes is considered).
+  \item Efficient classification.
+  \item Enaffected by missing data.
+  \item Good scalability in the training set size.
+\end{itemize}
+The WEAK point are:
+\begin{itemize}
+  \item Rule generation may be slow.
+  \item Reduced scalability in the number of attributes.
+\end{itemize}
 
+\paragraph{Neural Networks} They are inspired by the structure of the human brain, with elaboration units (neurons) and connection network (synapses). The structure is simplyfied in figure \ref{fig:str_net}.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/str_net.png}
+  \caption{Structure of a neural network}
+  \label{fig:str_net}
+\end{figure}
+The general structure of a neurons use an input and a weight vectors to generate a weighted sum (scalar product). After the addition of an offset it compute a function and then it provides the output values.\\
+The model of the networks is based on all the weight and all the offset value of each node.\\
+The training is based on an iterative approach. The base algorithm is:
+\begin{enumerate}
+  \item Assign random values to weights and offsets.
+  \item Process instances in the training set one at a time:
+  \begin{enumerate}
+    \item For each neuron, compute the result when applying weights, offset and activation function for the instance.
+    \item Forward propagation until the output is computed.
+    \item Compare the computed output with the expected output, and evaluate error.
+    \item Backpropagation of the error, by updating weights and offset for each neuron.
+  \end{enumerate}
+\end{enumerate}
+The process ends when:
+\begin{itemize}
+  \item The \% of accuracy above a given threshold.
+  \item The \% of parameter variation (error) below a given thereshold.
+  \item The maximum number of epochs (number of times training sets parsed) is reached.
+\end{itemize}
+These system has some strong points:
+\begin{itemize}
+  \item High Accuracy.
+  \item Robust to noise and outliers.
+  \item Supports both discrete and continous output.
+  \item Efficient during classification.
+\end{itemize}
+The main weak points insted:
+\begin{itemize}
+  \item Long training time: Weakly scalable in training data size. Complex configuration.
+  \item Not interpretable model: Application domain knowledge cannot be exploited in the model.
+\end{itemize}
 
+\paragraph{Bayesian Classification} Is really different from the previous methods explained. Is based on the Bayes theorem:
+\begin{equation}
+  \begin{gathered}
+    P(C,X) = P(C|X)P(X) = P(X|C)P(C)\\
+    P(C|X) = \frac{P(X|C)P(C)}{P(X)}
+  \end{gathered}
+\end{equation}
+The approch is:
+\begin{itemize}
+  \item Let the class attribute and all data attributes be random variables (C = Any Class, $X = <x_1,...,x_k>$).
+  \item Classification:
+  \begin{itemize}
+    \item Compute $P(C|X)$ for all classes (Probability that record X belongs to C).
+    \item Assign X to the class with the \textit{\textbf{maximal}} $P(C|X)$.
+  \end{itemize}
+\end{itemize}
+The computeation is achieved using the Bayes theorem, where P(C) is A Priori probability, without valculating the fraction (we not need the probability but only the highest value). The problem is how to calculate the $P(X|C)$, i.e $P(x_1,...,x_k|C)$ and it was solved using a Naïve hypothesis: All attributes are \textbf{statistical indipendent}, of course this is not always true and it can affect the model quality.\\
+For example, strating from the data below:
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/bay_data.png}
+  %\caption{Data for example}
+  \label{fig:bay_data}
+\end{figure}
+after the computation of all possibilities below:
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/bay_comp.png}
+  %\caption{Data for example}
+  \label{fig:bay_comp}
+\end{figure}
+When a new data ($X = <rain, hot, high, false>$) to be labeled is insert the flow will compute this value:
+\begin{itemize}
+  \item For class \textit{p}: $P(X|p)P(p) = 3/9*2/9*3/9*6/9*9/14 = 0.010582$
+  \item For class \textit{n}: $P(X|n)P(n) = 2/5*2/5*4/5*2/5*5/14 = \textbf{0.018286}$
+\end{itemize}
 
+\subsection{Clustering Fundamentals}
+\textit{What is Cluster Analysis?} Finding groups of objects such that the objects in a group will be similar (or related) to one another and different from (or unrelated to) objects in other groups.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/clustering.png}
+  \caption{The clustering ideas}
+  \label{fig:clustering}
+\end{figure}
+This is a data-mining technique not-supervisioned, it means that, respect the classification, it not require the class tag.
+The main applications of this analysis are:
+\begin{itemize}
+  \item \textbf{Understanding}: Group related documents for browsing, group of genes or proteins with similar functionality, etc...
+  \item \textbf{Summarization}: Reduce the size of large data sets.
+\end{itemize}
+The problem of clustering is related to its definition that can be ambiguous, the best cluster division is always related to the request of the problem, there isn't a always-best solution.\\
+\paragraph{Type of cluster} A clustering is a set of clusters, there are two main type of cluster:
+\begin{itemize}
+  \item \textbf{Partitional}: A division data objects into non-overlapping subsets (cluster) such that data object is in exactly one subset.
+  \item \textbf{Hierarchical}: A set of nested cluster organized as hierarchical tree.
+\end{itemize}
 
+\begin{figure}[h!]
+  \centering
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/part.png}
+    \caption{Partitional Cluster}
+    \label{fig:part}
+  \end{minipage}\hfill
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/hier.png}
+    \caption{Hierarchical Cluster}
+    \label{fig:hier}
+  \end{minipage}\hfill
+\end{figure}
 
+Other distrinctions between sets of clusters are:
+\begin{itemize}
+  \item Exclusive vs Non-exclusive: In eXclusive, point not belong to multiple clusters.
+  \item Fuzzy vs non-fuzzy: In fuzzy, a point belongs to every cluster with some weight (0<w<1).
+  \item Partial vs Complete: In some cases, we only want cluster some of the data.
+  \item Heterogeneous vs homogeneous: Cluster of widely sizes, shapes and densisties.
+\end{itemize}
 
+The types can be also distrincted by its shapes:\\
+In a \textbf{Well Separated} cluster the point are distribuited such that any point in a cluster is closer (or more similar) to every other point in the cluster than to any point not in the cluster (figure \ref{fig:we_sep}).
+\textbf{Center-based} means that an objects in a cluster is more similar to its center than to the center of any other cluster. The center can be found with the average of all point in the cluster (\textit{centroid}, it may not be a record), or with the most "representative" point (\textit{medoid}) of a cluster (figure \ref{fig:ce_ba}).
+\begin{figure}[h!]
+  \centering
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/we_sep.png}
+    \caption{Well Separated}
+    \label{fig:we_sep}
+  \end{minipage}\hfill
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/ce_ba.png}
+    \caption{Center-based}
+    \label{fig:ce_ba}
+  \end{minipage}\hfill
+\end{figure}
+Another type is the \textbf{Contiguity-based} that collect closer point to one or more other points in the cluster than to any point not in the cluster, they can have strange shapes (figure \ref{fig:cont}). In the \textbf{Density-based} the clusters are identified by high-density region of point, which are separated by low-densisty regions. The \textbf{Share Property} or conceptual clusters shares some common property or represent a particular concept (figure \ref{fig:share}).
+\begin{figure}[h!]
+  \centering
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/cont.png}
+    \caption{Contiguity}
+    \label{fig:cont}
+  \end{minipage}\hfill
+  \begin{minipage}{.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{images/share.png}
+    \caption{Share Property}
+    \label{fig:share}
+  \end{minipage}\hfill
+\end{figure}
 
+\paragraph{Algorithms} One of the most important is the \textbf{K-menas}. Used for partitional clusters, it associate each cluster with a centroid and each point is assigned to the cluster with the closest centroid. The number of cluster must be choose by the user. After the centroid choice is necessary to recompute the centroid. The algorithm is really simple.\\
+The initial centroids are often chosen randomly, it means that the clusters produced vary from one run to another. The distance can be evaluated in different ways, Euclidean, cosine, similarity, etc... The k-means will converge in the first few iterations (figure \ref{fig:kmeansConve}). The complexity is O(n*K*I*d), where n = \#ofPoints, K = \#ofClusters, I = \#ofIterations and d = \#ofAttributes.
+\begin{figure}[H]
+  \includegraphics[width=\linewidth]{images/kmeansConve.png}
+  \caption{Convergence of K-means}
+  \label{fig:kmeansConve}
+\end{figure}
+In situations of 10-15 dimensions is impossible to evaluated the "goodness" of a solutions, this can be achieved using \textbf{SSE} or Sum of Squared Error. For each point, the error is the distance to the nearest cluster. The formula is:
+\begin{equation}
+  \begin{gathered}
+    SSE = \sum^{K}_{i=1} \sum_{x \in C_i} dist^2(m_i, x)
+  \end{gathered}
+\end{equation}
+\textit{x} is a data point and $m_i$ is the representative point for cluster its cluster $C_i$. Given more cluster, we can choose the one with the smallest error. One way to reduce SSE is to increase K.\\
+In some cases the basic k-means algorithm can yeild empty clusters, is important to handling it. Some solutions are:
+\begin{itemize}
+  \item Choose the point that contributes most to SSE.
+  \item Choose a point from the cluster with the highest SSE.
+  \item If there are several empty clusters, the above can be repeated several times.
+\end{itemize}
+Is possible to increase the quality of the system with some pre-processing operation like:
+\begin{itemize}
+  \item Normalization (Always need).
+  \item Eliminate Outliers.
+\end{itemize}
+There also some post-processing operations:
+\begin{itemize}
+  \item Eliminate small cluster that may represent outliers.
+  \item Split 'loose' clusters (high SSE).
+  \item Merge clusters that are 'close' and that have relatively low SSE.
+  \item Can use these step during the clustering process.
+\end{itemize}
 
-
-
+The \textbf{bisecting K-means} is an alternative to the k-means, it applies the normal k-means by splitting a cluster,  the worst one (high SSE), in 2 cluster. These step are iterated many times until the number of cluster is K. Normally this solution give better results than the normal k-means.\\
+Both k-means solution has problem when clusters are of differing in size (\ref{fig:size}), densities (\ref{fig:dens}) or non-globular shapes (\ref{fig:shape}), also outliers can cause problems.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/size.png}
+  \caption{Size problem}
+  \label{fig:size}
+\end{figure}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/dens.png}
+  \caption{Density problem}
+  \label{fig:dens}
+\end{figure}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/shape.png}
+  \caption{Shape problem}
+  \label{fig:shape}
+\end{figure}
+One solution is to use an high number of K and then merge it in a post-processing phase.
+% Next Lez.42 - Pag. 40
 
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
@@ -1735,7 +2193,7 @@ The volume of our data growth really really faster, we speaking now of thousant 
   \item Data management \& Analysis: New emphasys on "data" $\rightarrow$ Data Science.
 \end{itemize}
 
-\subsection{Data Science} is: "\textit{Extracting meaning from very large quantities of data}" is an abused word nowadays because the big is not really defined and every kind of analysis over data seems data science. DS collects a lot of different stuff, statistics, machine learning, visualization, pattern recognition, ecc... The data science process is based on the KDD already mentioned in \ref{subsec:datamin_intro} paragraph.
+\subsection{Data Science} is: "\textit{Extracting meaning from very large quantities of data}" is an abused word nowadays because the big is not really defined and every kind of analysis over data seems data science. DS collects a lot of different stuff, statistics, machine learning, visualization, pattern recognition, etc... The data science process is based on the KDD already mentioned in \ref{subsec:datamin_intro} paragraph.
 
 \paragraph{Value chain} the process to the data science is chematized in figure below:
 \begin{figure}[H]
@@ -1746,9 +2204,9 @@ The volume of our data growth really really faster, we speaking now of thousant 
 \begin{itemize}
   \item \textbf{Generation}:
   \begin{itemize}
-    \item Passive Recording: Typically structured data, like bank transaction, shopping records, government, ecc...
+    \item Passive Recording: Typically structured data, like bank transaction, shopping records, government, etc...
     \item Active Generation: Semistructured or unstructured data, like User generated content...
-    \item Automatic Production: Location-aware, context-dependent, highly mobile data, sensor-based internet-enabled devices, ecc...
+    \item Automatic Production: Location-aware, context-dependent, highly mobile data, sensor-based internet-enabled devices, etc...
   \end{itemize}
   \item \textbf{Acquisition}:
   \begin{itemize}
@@ -1758,20 +2216,20 @@ The volume of our data growth really really faster, we speaking now of thousant 
   \end{itemize}
   \item \textbf{Storage}:
   \begin{itemize}
-    \item Storage Infrastructure: HDD, SSD, DAS, NAS, SAN, ecc...
-    \item Data Management: File System (HDFS), key-value stores (memchached), column-oriented, document-based, ecc...
+    \item Storage Infrastructure: HDD, SSD, DAS, NAS, SAN, etc...
+    \item Data Management: File System (HDFS), key-value stores (memchached), column-oriented, document-based, etc...
     \item Programming Models: Map reduce, stream processing and graph processing.
   \end{itemize}
   \item \textbf{Analysis}:
   \begin{itemize}
     \item Objectives: Descriptive, predictive or prescriptive analytics.
-    \item Methods: Satistical analysis, data mining, network, clustering, ecc...
+    \item Methods: Satistical analysis, data mining, network, clustering, etc...
   \end{itemize}
 \end{itemize}
 
 \paragraph{Difference} traditional systems use database and datawarehouse with well-defined strucuture small enough to be fitted to the machines. In big data the dataset is not suitable for database and it's why new solution like HDFS has been developed, may need near real-time analysis that is a different approch from data warehousing. There are also a lot of different programming paradigms.\\
 Also the processing phase is changed, the traditional computation is processor bound and required a data trasfert from disks to CPUs to be processed this could be a problem because during these years the storage capacity has grown a lot, but the speed not the same...\\
-The solutions is to "\textit{\textbf{transfert the processing power to the data}}" it means that the various CPUs will compute only the subset of data that they have near in order to avoid data transfert. The problem is that this solution is not problem free, it must manage, hardware failure, network data transfert, data loss, ecc... Everything is managed by Hadoop in figure \ref{fig:hadoop}.
+The solutions is to "\textit{\textbf{transfert the processing power to the data}}" it means that the various CPUs will compute only the subset of data that they have near in order to avoid data transfert. The problem is that this solution is not problem free, it must manage, hardware failure, network data transfert, data loss, etc... Everything is managed by Hadoop in figure \ref{fig:hadoop}.
 \begin{figure}[hp!]
   \includegraphics[width=\linewidth]{images/hadoop.png}
   \label{fig:hadoop}
