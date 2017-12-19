@@ -797,4 +797,98 @@ Th \textbf{store} instructions write to memory when they commit, only. Therefor,
 
 When a time-expensive event (e.g. second-level cache miss, TLB miss) occurs speculatively, some processors wait for its execution until the event is no more speculative. On the other side, low-cost events (e.g. first-level cache miss) are nomally executed speculatively.
 
+\section{Mutiple-issue Processors}
+The techniques for reducing the effects of data and control dependencies can be further exploited to obtain a CPI less than one. The are two kinds of processors able to do so:
+\begin{itemize}
+  \item Superscalar, either statically or dinamically scheduling instruction.
+  \item Very Long Instruction Word (VLIW).
+\end{itemize}
+
+\subsection{Scheduling}
+\paragraph{Statical Scheduling} Implementing a superscalar processors able to possibly issue several instructions according to the static order defined by the compiler is rather easy and inexprensive. Two instructions can be issued per clock cycle if: one is a load, store, branch or integer ALU operation, and the other is any FP operation (but load and store, whihc belong to the first category).
+Two instructions (64 bits) are fetched and decoded at every clock cycle. The two instruction are aligned and constritute an \textbf{issue} packet. In the previous version of superscalar a fixed structure for issueing is need, not they don't have this limitations.\\
+At each clock cycle 2 instructions must be read from the instruction memory. If they belong to different cache blocks, several processors fetch one instruction only. In general the issue packet may only contain one branch.\\
+In order to obtain a real benefit, the FP units should be either pipelined, or mutiple and independent. When the first instruction is a FP load, store, or move, there is a possible contention for a FP register port, the possible solutions are:
+\begin{itemize}
+  \item Forcing the 1th instruction to be executed by itself.
+  \item Giving the FP register file an additional port.
+\end{itemize}
+Another common problem occurs when the second instructions read the result of the first one, in this case a RAW is also possible. The most used solution is to delay the second instruction of one clock.\\
+
+In the MIPS pipeline, load has a latency of one clock cycle, which means that in the superscalar pipeline the result of a load instruction can not be used on the same clock cycle but on the next one. In the static version the load delay slot (as well as the branch delay slot) is equal to three. The static multiple-issue scheduling is manly adopted by processors for the embedded market, such as those by MIPS.
+
+\paragraph{Dynamic Scheduling} It can be obtained by adopting a scheme similat to the Tomasulo one. TO make the implementation easier, instructions are never issued to the reservation stations out-of-order. Is some clock cycles, more than one isntruction may be ready to write on the CDB, that can only service one isntruction at a time. Duplicating the CDB can provide higher performance, at the cost of some area overhead.
+
+\paragraph{VLIW} Super scalar processor evelution led to complex processors composed of several functional units, and all the logic for:
+\begin{itemize}
+  \item Detecting and managing dependencies.
+  \item Dynamic Scheduling.
+  \item Branch prediction and speculation.
+\end{itemize}
+This increased a lot the complexity of processors. Alternative approaches have also been investigated, including VLIWs.
+
+This type of processors have longn isntructions encoding several operations, which are issued in parallel. The hardware includes as many functional units, as the operations in a single instruction. They are relatively common for embedded applications (signal processing and graphics).
+The basic characteristics are:
+\begin{itemize}
+  \item \textbf{More Complex Software}: It is up to the compiler to decide ehich instructions to pack togheter, exploting parallelism, unrolling loops, scheduling code across basic bloxks, etc.
+  \item \textbf{Simpler Hardware}: It does not perform any check on possible dependencies among instructions (left to compiler).
+\end{itemize}
+When an operation require stalling the whole instruction packet is stalled, in order ot preserve the flow decided by the compiler.\\
+A VLIW processors does not require the hardware for choosing the instruction to be executed in parallel (i.e., for detecting depenedencies). This kind of processor is limited by:
+\begin{itemize}
+  \item Inherent limitations of ILP in programs: Hard to find sufficient number of independent instructions that can be executed in parallel.
+  \item Difficulties in building the hardware: More units, more bandwidth to register file and the memory.
+  \item Limitations specific to a superscalar or VLIW processor.
+\end{itemize}
+The code size is much larger for VLIW processors, mainly due to two factors:
+\begin{itemize}
+  \item Loops are intesively unrolled to extract more parallelism.
+  \item The empty slots in instruction encoding.
+\end{itemize}
+Sometimes instructions are compressed in memory and expanded when loaded to the processor.\\
+The main bottleneck is caused by the memory, since the required bandwidth is higher, and stall due to cache misses cause a stall on the whole processor.\\
+Two example are Trimedia TM32 (NXP, 5 instruction, statical) and Transmeta Crusoe (2/4 instructions).
+
+\section{Thread Level Parallelism}
+\subsection{Introduction}
+It is unlikely that further eveolutions in processor or compiler architecture could achieve singificant improvements in the explotation of the available ILP. On the other side, in many applications there is a significant amount of parallelism available at a higher level (TLP).\\
+A \textit{thread} is a separete process with its own instructions and data. A thread may correspond to:
+\begin{itemize}
+  \item A process within a parallel porgam consisting of multiple processes, or...
+  \item An independent process.
+\end{itemize}
+There are applications that naturally expose a high degree of tTLP (e.g., many server applications, OS). In other caes, the software is written in such a way to explicitly express the parallelism. In some existing applications it can be relatively difficult to identify and exploit TLP.
+
+\subsection{Multithreading}
+In principle, ILP and TLP can be combined: an ILP-oriented processor could use TLP as a source of independent instructions to feed the available functional units as much as possible.\\
+Multithreading allows mutiple threads to share the functional units of a single processor in an overlapping fashion, duplicating only threads private state. It requires:
+\begin{itemize}
+  \item Independently storing the state of each thread (register file, PC, page table, etc.)
+  \item Independet access to memory (e.g., through the virtual memory mechanism)
+  \item Effective mechanism for switching ffrom one thread to another.
+\end{itemize}
+There are different types of multithreading:
+\begin{itemize}
+  \item Fine-grained: The switch from one thread to another happens at every clock cycle.
+  \item Coarse-grained: The switch happens only when an expensive stall aries.
+  \item Simultaneous (SMT): It mixes fine-grained and superscalar ideas.
+\end{itemize}
+In the \textbf{fine}-grained multithreading the execution of multiple threads is interleaved (e.g., in a round robin fashion, skipping any thread which is stalled at a given time). The CPU must be able to efficiently switch between tasks at any clock cycle. The ADVANTAGE is that when an instruction is stalled, other instructions can be found in other threads, avoiding any performance loss. The main DISADVANTAGE is that threads could be slowed down by the concurrent execution of other threads.\\
+The \textbf{coarse}-grained multithreading switch to a new thread only on costly stalls, the ADVANTAGE is that thread switch can be less efficient and the DISADVANTAGE comes from the impossibility to avoid the losses from short stalls.\\
+This last solutions \textbf{SMT} is a type of fine-grained multithreading enabling a superscalar processor to exploit ILP and multithreading at the same time. Multiple instructions from independent threads can be issued using dynamic scheduling capabilities to resolve dependencies among them. Instructions from multiple threads can be mixed in the data path thank to:
+\begin{itemize}
+  \item High number of available registers.
+  \item Renaming mechanism.
+\end{itemize}
+The SMT can be implemented on the top of an out-of-order processor by:
+\begin{itemize}
+  \item Adding a per-thread renaming table.
+  \item Keeping separate PCs.
+  \item Allowing instructions from multiple threads to commit (separate ROB from each threads).
+\end{itemize}
+
+\subsection{Conclusions}
+Nowadays the trend is not towards embedding SMT in aggressive speculative processors.\\
+Rather, designers are opting to implement multiple CPU cores on a single die with less aggressive support for multiple issue and multithreading.
+
 \end{document}
