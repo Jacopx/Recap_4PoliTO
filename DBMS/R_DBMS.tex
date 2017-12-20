@@ -62,7 +62,7 @@ Under the following conditions:
 Questo breve riepilogo non ha alcuno scopo se non quello di agevolare lo studio di me stesso, se vi fosse di aiuto siete liberi di usarlo.\\
 Le fonti su cui mi sono basato sono quelle relative al corso offerto (\textbf{Database Management System (01NVVOV)}) dal Politecnico di Torino durante l'anno accademico 2017/2018.\\
 Non mi assumo nessuna responsabilità in merito ad errori o qualsiasi altra cosa. Fatene buon uso!
-\newpage
+\clearpage
 
 \section{Database Management System}
 \subsection{Introduction}
@@ -815,7 +815,7 @@ Also the recovery phase is a little bit modififed, the warm restart will read th
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
-\newpage
+\clearpage
 \section{Data Warehouses}
 \subsection{Introduction}
 The database was delevoped for giving a service to the final users, like university, flight companies and other stuff. During the 80's they have understand that this system could be also used for made analisys over data. This analisys could be usefull for improving decision, forecast, cost reduction and other stuff.\\
@@ -1181,7 +1181,7 @@ The \textbf{cube} function is used for computing all aggregates of all possible 
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
-\newpage
+\clearpage
 \section{Data Mining}
 \subsection{Introduction} \label{subsec:datamin_intro}
 During this year the companies the number of database and its size it increased a lot. All DB are potential source of useful information. Is know the our capacities of collecting data is really more the out capacity of analyzing it.\\
@@ -1984,12 +1984,62 @@ Both k-means solution has problem when clusters are of differing in size (\ref{f
   \label{fig:shape}
 \end{figure}
 One solution is to use an high number of K and then merge it in a post-processing phase.
-% Next Lez.42 - Pag. 40
+
+The \textbf{hierarchical Clustering} algorithms produces a set of nested clusters organized as a hierarchical tree. They can be visualized as a dendrogram (a tree like diagram that records the sequences of merges or splits). They can be created bottom-up or top-down. They don't have to assume any particular number of clusters. Two main types:
+\begin{itemize}
+  \item Agglomerative: Points as individual clusters. Each step, merge the closest pair of clusters until only one cluster left.
+  \item Divisive: Start with one, all-inclusive cluster. Each step, split a cluster until each cluster contains a point.
+\end{itemize}
+Since in the intermediate steps we will have only clusters, is necessary to have measurement for distance between points, already studied in classification section, and between clusters. All the computation is made with a proximity matrix.\\
+There are 5 main measure, the first 3 are computing all couples combination between two cluster and than select the MIN, MAX or Average distance between them. Another possibilities is to compute the distance between centroids.  All these possibilities are done to fill the proximity matrix.\\
+The advantage of the \textbf{MIN} is that it can handle non-elliptical shapes, the limitations is that is sensitive to noise and outliers. Instead, the \textbf{MAX} is less susceptible to noise and outliers, but it tends to break large clusters (like K-means).\\
+The most expensive step is the computation of the matrix, the space complexity is $O(N^2)$, where N is the number of points, the time complexity is $O(N^3)$.\\
+
+Another algorithm is the \textbf{DBSCAN} that is density-based, it's good to check outliers and noise. The density is computed like the number of points eithin a specified radius $\epsilon$. The points are classified, given $\epsilon$ and $minPts$, with three label:
+\begin{itemize}
+  \item \textbf{Core}: If it has more than a \textit{minPts} within $\epsilon$.
+  \item \textbf{Border}: Fewer than \textit{minPts} in $\epsilon$ but near to a core point.
+  \item \textbf{Noise}: Any point not a Border or a Core ones (added to the cluster 0).
+\end{itemize}
+An example in figure \ref{fig:dbscan}.
+The implementation is not too easy, the pseudo code is the following:
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/dbscan_pseudo.png}
+  %\caption{DBSCAN example}
+  \label{fig:dbscan_pseudo}
+\end{figure}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/dbscan.png}
+  \caption{DBSCAN example}
+  \label{fig:dbscan}
+\end{figure}
+The strenght of the DBSCAN is that is really resistant to noise and it can hadle clusters of different shapes and sizes. It not works well in case of varying densisties and high-dimensional data. The first problem can be solved performing two iterations of the algorithm, in the first one you'll find the high-dense clusters, in the second one the less-dense.\\
+\textit{How determing $\epsilon$ and minPts?} The ideas is to plot a graph with sorted distance of every point to its $k^{th}$ nearest neighbor. This because for points in a cluster, their $k^{th}$ nearest neighbors are at roughly the same distance, instead the noise points are farther. Normally the value of k is choose at the knee of the curve (around 10 in figure \ref{fig:knee}), in case of multiple knees it means that there are different density zones.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/knee.png}
+  \caption{Example of graph for determining $\epsilon$ and \textit{minPts}}
+  \label{fig:knee}
+\end{figure}
+
+\paragraph{Cluster Validity} this is the most difficult tasks. Some numerical measure can be exploited to evaluate the "goodness" of the solution. They are classified in two main classes:
+\begin{itemize}
+  \item External Index: Used to measure the extent to which cluster labels match externally supplied class labels, like a training sets (entropy, purity).
+  \item Internal Index: Used to measure the goodness of a clustering structure without respect to external information (SSE, cohesion (how near), separation (how far), rand-index).
+\end{itemize}
+
+\bigskip
+``The validation of clustering structures is the most difficult and frustrating part of cluster analysis.\\
+Without a strong effort in this direction, cluster analysis will remain a black art accessible only to those true believers who have experience and great courage.''\\
+\rightline{{\rm --- \textbf{Jain and Dubes}, Algorithms for Clustering Data}}
+
 
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
-\newpage
+\clearpage
 \section{Beyond Relational Databases}
 \subsection{Introduction}
 The first NoSQL databases was developed around 1998. The main difference are three:
@@ -2167,7 +2217,7 @@ This are an important characteristics of this systems. It's really easy to get a
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
 %--------------------------------------------------------------------------------------------------------
-\newpage
+\clearpage
 \section{Big Data} % 8/12/17
 \subsection{Introduction}
 Big Data is about Seach, lot of bytes, storage and analytics. Big data not makes magic and it could give bad result if not performed well. Where get all this data? Of course from the web, mobile, social, sensors from healt to scientific, log files, IoT, and so on...\\
