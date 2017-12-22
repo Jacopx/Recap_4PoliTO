@@ -665,7 +665,7 @@ The reservation stations related to each functional unit control when an instruc
   \end{itemize}
 \end{itemize}
 
-\paragraph{Flow} In case of normal instructions, when an operand appears on the CDB, it is read by the reservation unit. As soon as all the operands for an instruction are available in the RU, the instruction is executed. For the load and store operations, the first step is, as soon as the base register is available, the effective address is computed and written in the load/store buffer. The second step will be, for the load instruction: execute as soon as memory is available, for the store instructions, wait the operand to be written and then executed as soon as memory is available. In case of branches, to preserve exception behaviour, no instruction is allowed to initiate execution until all branches that precede the instruction in program order have completed. When the result of an instruction is available, it is immediately written on the CDB, and from there is the register and functional units waiting for it.\\
+\paragraph{Flow} In case of normal instructions, when an operand appears on the CDB, it is read by the reservation unit. As soon as all the operands for an instruction are available in the RU, the instruction is executed. For the load and store operations, the first step is, as soon as the base register is available, the effective address is computed and written in the load/store buffer. The second step will be, for the load instruction: execute as soon as memory is available, for the store instructions, wait the operand to be written and then executed as soon as memory is available. In case of branches, to preserve exception Behavior, no instruction is allowed to initiate execution until all branches that precede the instruction in program order have completed. When the result of an instruction is available, it is immediately written on the CDB, and from there is the register and functional units waiting for it.\\
 
 Each reservation station is associated with an \textbf{identifier}. It identify also the operand the instruction will produce. Instructions requiring that operand identify it using the identifier. The identifiers play the role of names of virtual registers that ca be used to implement register renaming.
 
@@ -890,5 +890,111 @@ The SMT can be implemented on the top of an out-of-order processor by:
 \subsection{Conclusions}
 Nowadays the trend is not towards embedding SMT in aggressive speculative processors.\\
 Rather, designers are opting to implement multiple CPU cores on a single die with less aggressive support for multiple issue and multithreading.
+
+\section{Cache memories}
+\subsection{Introduction}
+Cache memories are small and high-speed memories that are interposed between the processor and the main memory.\\
+The presence of a cache can improve the performance of a system due to the \textbf{locality of referneces} observed in most programs. Locality takes two forms:
+\begin{itemize}
+  \item \textbf{Temporal}: If a time \textit{t} the program accesses to a given memory call, it is highly probable that the program accesses again the same cell by the time $t_0 + \delta t$.
+  \item \textbf{Spatial}: If at time $t_0$ the program accesses a memory cell with addess X, it is highly likely that by the time $t_0 + \delta t$ the program will also access the memory cell with address X $\pm$ e.
+\end{itemize}
+The idea is that, at the time $t_0$ an entire block is loaded in the cache, it is likely that for a certain time $\delta t$ the program will find in the cache all of the words it needs.
+
+\subsection{Organization \& Behavior}
+A cache is organized in lines, each lines contains a memory block that includes some memory words. They are also associated with a tag field, which indicates the memory block present in that line at that time. The cache also contains the logic for:
+\begin{itemize}
+  \item Intercepting the addresses procuded by the processor.
+  \item Checking inside the cache the possible presence of the block that the processor wants to access.
+  \item Possibly loading the block.
+\end{itemize}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/cacheOrg.png}
+  \caption{Cache organization schems}
+  \label{fig:cacheOrg}
+\end{figure}
+
+The cache is locate between the processor and the main memory. Each time the processor performs an access to memory the cache intercepts the address and check if the block to which the word belongs is in the cache, checking the value of the tags.
+\begin{itemize}
+  \item \textbf{if YES}: It extracs the word from the block and provides it to the CPU without any access to the main memory (CACHE HIT).
+  \item \textbf{if NO}: It loads in the cache the entire block that the word is part of (CACHE MISS).
+\end{itemize}
+In case of a hit, the cache reducces the memory access times by the factor that is dependent on the ration between cache and primary memory access times.\\
+In case of a miss, the cache responds in two possible ways:
+\begin{itemize}
+  \item It accesses the memory and loads the entire missing block; the it provides the requestd word. The access time is therefor higher that in a cache-free system.
+  \item It accesses the memory and immediatly provides the requested word (load-through or early restart). This technique requires a higher cost in terms of cache hardware, but miss situations have more limited impact on cache performance.
+\end{itemize}
+Postitioning the cache between the CPU and the bus allows to gain some benefits reduce the bus load and compatible solution with multiprocessor architecture.
+
+\subsection{Architecture}
+If there are two caches, the architecture of the system falls into the scheme know ad Harvard architecture, characterized by the existence of two separate data and code memories. Important parameters of a cache memories are:
+\begin{itemize}
+  \item Cache size
+  \item Mapping
+  \item Replacing algorithm
+  \item Main memory update mechanism
+  \item Block Size
+\end{itemize}
+The \textbf{size} is very important, a size increase implies cost and system performance increase, but it becomes slower itself. The \textbf{mapping} mechanism defines in which line of the cache a certain memory block is written when it is uploaded in the cache. You must endure (at an accptable cost) that the cache can quickly verify if it contains the data corresponding to a certain address.
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/mapping.png}
+  \caption{Mapping schemes}
+  \label{fig:mapping}
+\end{figure}
+There are three main types of mapping. In the \textbf{Direct} mapping each memory block \textit{i} is statically associate to a line \textit{k} in the cache using the expression:
+\begin{equation}
+  \begin{gathered}
+    k = i mod(N)
+  \end{gathered}
+\end{equation}
+where N is the number of lines in the cache. The computation of \textit{k} can be easily performed by just taking the least significant bits in the i value. The advantage is that the mechanisms can be easily implemented in hardware, the problem is the if the program frequently accesses 2 blocks corresponding to the same cache line, a miss occurs at each momory access.\\
+The \textbf{Set Associative} mapping divides the cache lines in \textit{S} sets, each consisting of \textit{W} (ways: 2 or 4 normally) lines, a block \textit{i} is associated with the set \textit{k} with $k = i mod(S)$, then the block \textit{i} can be put into any of the \textit{W} lines of the set k. This technique is also called \textit{W-ways} cache.\\
+The last technique is the \textbf{Associative} mapping, each block of the main memory can be stored in any cache block. The main advantage is that there is maximum flexibility in choosing the cache block to use. The problem is complexity of search hardware.
+
+\subsection{Replacing algorithm}
+It defines which cache line should be used to store a memory block, amongest those associated with the block (in the case of associative or set associative mapping). The choice is over:
+\begin{itemize}
+  \item \textbf{LRU} (Least Recently Used): Most used.
+  \item \textbf{FIFO} (First In First Out): Cheapest.
+  \item \textbf{LFU} (Least Frequently Used): Theoretically, the most effective.
+  \item \textbf{Random}: Simple and effective.
+\end{itemize}
+
+\subsection{Memory update}
+When a write operation is performed on a data in the cache, we also need to update the main memory, there are two solutions that can be adopted. In the \textbf{Write-Back} for each cache block, a flag (called dirty-bit) is introduced, which remembers wheter ot not the block has been changed since it was loaded into the cache. When a block is evicted from the cache and the dirty bit is set, the block is copied from the cache to the main memory. Disadvantages:
+\begin{itemize}
+  \item The replacement is slower because it sometimes requires copying in the main memory the replaced block.
+  \item In multiprocessor systems there may be incoherence between the caches of different processors.
+  \item It may noy be possible to restore memory data after possible system failures.
+\end{itemize}
+The \textbf{Write-Through} solution instead, each time the CPU performs a write operation, it writes on both the cache data and the main memory data. The resulting loss of efficency is limited by the fact that writing operations are usually much less numerous that reading ones.
+
+\subsection{Cache Coherence}
+The cache coherence is the major problem in multiprocessor systems with shared memory, in which each processor has its own cache. Similar problems may occur if the system uses a DMA controller.\\
+To achieve coherence, a vilidity bit is introduced for every cache line. If it is disabled, it means that any access to the block must produce a miss. At the power-on, the validity bits of all cache lines are disabled.
+
+\subsection{Levels}
+Modern arechitectures implements multiple-levels architectures, the L1 is the fastest but smallest ones, the L3 is the biggest but the slowest and the L2 is in the middle. Each time the processor performs a memory access:
+\begin{itemize}
+  \item It checks first whether the word is in L1.
+  \begin{itemize}
+    \item If so, it can access the world in L1.
+    \item If not, it checks wheter the word is in L2.
+    \begin{itemize}
+      \item If so, it will access to the word in L2 and eventually update L1.
+      \item If not, it checks wheter the word is in L3.
+      \begin{itemize}
+        \item If yes, L3 is accessed and L2 is updated.
+        \item If not, it access to the main memory and eventually update L3.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+\begin{figure}[h!]
+  \includegraphics[width=\linewidth]{images/intel.png}
+  \caption{Modern CPU schemes}
+  \label{fig:intel}
+\end{figure}
 
 \end{document}
