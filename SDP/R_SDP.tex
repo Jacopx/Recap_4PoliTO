@@ -16,6 +16,13 @@
 \usepackage{float}
 \usepackage{amssymb}
 \usepackage{ifsym}
+%multi-column
+\multicolumn{number cols}{align}{text} % align: l,c,r
+
+%multi-row
+\usepackage{multirow}
+\multirow{number rows}{width}{text}
+
 % Misure Documento
 \geometry{ a4paper, total={170mm,257mm},left=35mm, right=35mm, top=35mm, bottom=35mm }
 
@@ -166,6 +173,157 @@ Using the \textbf{Dynamic Loading} routine is not loaded until it is called, thi
 Another important mechanism is the \textbf{Dynamic Linking} where the linking is postponed until execution time. Small piece of code, \textit{stub}, used to locate the appropriate memory-resident library routine, replaces itself with the address of the routine, and executes the routine. OS needed to check if routine is in processes memory addresses. This solution is particularly useful for libraries. It is also know as \textbf{Shared Libraries}.
 
 \subsection{Swapping}
+A process can be swapped temporarily out of memory to a backing store, and then brought back into memory for continued execution.\\
+\textbf{Backing Store} fast disk large enough to accommodate copies of all memory images for all users; must provide direct access to these memory images. \textbf{Roll out, Roll in} swapping variant used for priority-based scheduling algorithms; lower-priority process is swapped out so higher-priority process can be loaded and executed.\\
+The greatest part of swap time is spent in transfer time; total transfer time is directly proportional to the amount of memory swapped. Each system maintains a ready queue of ready-to-run processes which have memory images on disk. AN example of swapping in figure \ref{fig:swap}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.4\linewidth]{images/swap.png}
+  \caption{Swapping process}
+  \label{fig:swap}
+\end{figure}
+
+\subsection{Contigous Allocation}
+Main memory is usually into two parts:
+\begin{itemize}
+  \item Resident OS, usually held in low memory with interrupt vector.
+  \item Use processes in the high part.
+\end{itemize}
+Relocation registers used to protect user processes from each other, and from changing OS code and data:
+\begin{itemize}
+  \item Base register contains value of smallest physical addresses.
+  \item Limit register contains range of logical addresses must be less than the limit register.
+  \item MMU maps logical address \textit{dynamically}.
+\end{itemize}
+
+Multiple-partition allocation is based on \textbf{Hole}: block of available memory; holes of various size are scattered throughout memory. When the process arrives, it is allocated memory from a hole large enough to accommodate it. The OS maintains information about:
+\begin{itemize}
+  \item Allocated Partitions
+  \item Free Partitions (hole)
+\end{itemize}
+
+\subsection{Dynamic Storage-Allocation Problem}
+There are several solution to how satisfy a request of size \textit{n} from a list of free holes:
+\begin{itemize}
+  \item \textbf{First-fit}: Allocate the \textit{first} hole that is big enough.
+  \item \textbf{Best-fit}: Allocate the \textit{smallest} hole that is big enough; must search entire list (unless ordered by size). It produces the smallest leftover hole.
+  \item \textbf{Worst-fit}: Allocate the \textit{largest} hole; must also search the entire list. It produces the largest leftover hole.
+\end{itemize}
+First and best fit are better than worst in terms of speed and storage utilization.
+
+\subsection{Fragmentation}
+The \textbf{External} is the total memory exists to satisfy a request, but it is not contiguous. The \textbf{Internal} instead is the allocated memory that can be slightly larger that requested memory; this size difference is memory internal to a partition, but not being used.\\
+Is possible to reduce the fragmentation by using the \textbf{compaction}. Shuffle memory contents to place all free memory together in one large block. Compation is possible only is the relocation is dynamic, and is done at execution time. There are some I\/O problems:
+\begin{itemize}
+  \item Latch job in memory while it is involved in I\/O.
+  \item Do I\/O only into OS buffers.
+\end{itemize}
+
+\subsection{Paging}
+The paging is a memory management scheme by which a computer stores and retrieves data from secondary storage for use in main memory.\\
+Logical address space of a process can be non-contiguous; process is allocated in physical memory whenever the latter is available. Divide physical memory into fixed-sized blocks called \textbf{frames} (size power of 2, between 512 bytes and 8'192 bytes) and keep track of all of them. Divide logical memory into blocks of same size called \textbf{pages}. When a program of \textit{n} pages need to be runned, all the \textit{n} frames must be finded and loaded. Using this solution is important to set up a page table to translate logical to physical addresses. These process of course incurs in internal fragmentation.\\
+\paragraph{Address Translation Scheme} divide the addresses generated by the CPU into:
+\begin{itemize}
+  \item \textbf{Page Number (p)}: Used as an index into a page table which contains base address of each page in physical memory.
+  \item \textbf{Page Offset (d)}: Combined with base address to define the physical address that is sent to the memory unit.
+\end{itemize}
+\begin{center}
+  \begin{tabular}{ |c|c| }
+    \hline
+    \textbf{Page Number} & \textbf{Page Offset}\\
+    \hline
+    p & d\\
+    \hline
+    m - n & n\\
+    \hline
+  \end{tabular}
+\end{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/paging.png}
+  \caption{Paging Hardware}
+  \label{fig:paging}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/ex_paging.png}
+  \caption{Paging Example}
+  \label{fig:ex_paging}
+\end{figure}
+
+\paragraph{Page Table} is kept in main memory, it can be of 2 types:
+\begin{itemize}
+  \item \textbf{PTBR} (Base Register): Points to the page table.
+  \item \textbf{PRLR} (Lenght Register): Indicates size of the page table.
+\end{itemize}
+In this scheme every data/instruction access requires two memory accesses. One for the page table and one for the data/instruction. This double-access problem can be solved by the use of a special fast-lookup hardware cache called \textbf{Associative Memory} or \textbf{Translation Look-aside Buffers} (TLBs). Some TLBs soter address-space identifiers (ASIDs) in each TLB entry: uniquely identifies each process to provide address-space protection for that process.\\
+In all cases the \textbf{Effective Access Time} (EAT) is computed:
+\begin{equation} \label{eat}
+  EAT = (t + \epsilon)*\alpha + (2*t + \epsilon)(1 - \alpha)
+\end{equation}
+where:
+\begin{itemize}
+  \item $\epsilon$: Associative lookup time unit
+  \item t: Memory cycle time
+  \item $\alpha$: Hit ratio
+\end{itemize}
+
+\subsection{Memory Protection}
+The MP is implemented by associating protection bit with each frame. \textbf{Valid-Invialid} (means "if is in the code domain") bit attached to each entry in the page table:
+\begin{itemize}
+  \item \textbf{Valid}: Indicate that the associated page is in the process logical address space, and is thus a legal page.
+  \item \textbf{Invalid}: Indicates that the page is not in the process logical address space.
+\end{itemize}
+
+\subsection{Shared Pages}
+The \textbf{shared code} is one copy of read-only (reentrant) code shared among processes (i.e., text editors, compilers, window system). Shared code must appear in same locaiton in the logical address space of all processes. Regarding \textbf{private code and data}, each process keeps a separate copy of them. The pages for the private code and data can appear anywhere in the logical address space.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/shared_page.png}
+  \caption{Shared Page}
+  \label{fig:shared_page}
+\end{figure}
+
+\subsection{Page Table}
+They can be of 3 types:
+\begin{itemize}
+  \item \textbf{Hierarchical}
+  \item \textbf{Hashed}
+  \item \textbf{Inverted}
+\end{itemize}
+the choice is related to the page size.\\
+The first one, the \textbf{hirearchical}, breaks the logical address space into multiple page tables, a simple technique is a two-level page table. This solution is not actuable in 64-bit system.
+A possible example with a Two-Level pagin could be:
+\begin{itemize}
+  \item \textbf{Page Number} consisting of 22-bit: (since is paged is further divided)
+  \begin{itemize}
+    \item 12-bit page number
+    \item 10-bit offset
+  \end{itemize}
+  \item \textbf{Page Offset} consisting of 10-bit
+\end{itemize}
+Thus the logical address is as follows:
+\begin{center}
+  \begin{tabular}{ |c|c|c| }
+    \hline
+    \multicolumn{2}{|c|}{\textbf{Page Number}} & \textbf{Page Offset}\\
+    \hline
+    $p_i$ & $p_2$ & d\\
+    \hline
+    12 & 10 & 10\\
+    \hline
+  \end{tabular}
+\end{center}
+A 3-level architecture is used in order to correctly and completely addressing 64-bit addresses.\\
+The \textbf{hashed} architecture is common in address spaces greater than 32 bit. The virtual page is hashed into a page table. This page table contains a chain of elements hashing to the same location. Virtual page numbers are compared in this chain searching for a match. If a match is found, the corrisponding physical fram is extracted.\\
+The last type, \textbf{inverted}, has one entry for each real page of memory. Entry consist of the virtual address of the page stored in that real memory location, with the information about the process that owns that page. Decreases memory needed to store each page table, but increases time needed to search the table when a page reference occurs. This last solution is affordable only with few memory of course.
+
+
+
+
+
+
 
 
 
