@@ -319,8 +319,29 @@ A 3-level architecture is used in order to correctly and completely addressing 6
 The \textbf{hashed} architecture is common in address spaces greater than 32 bit. The virtual page is hashed into a page table. This page table contains a chain of elements hashing to the same location. Virtual page numbers are compared in this chain searching for a match. If a match is found, the corrisponding physical fram is extracted.\\
 The last type, \textbf{inverted}, has one entry for each real page of memory. Entry consist of the virtual address of the page stored in that real memory location, with the information about the process that owns that page. Decreases memory needed to store each page table, but increases time needed to search the table when a page reference occurs. This last solution is affordable only with few memory of course.
 
-
-
+\subsection{Segmentation}
+MM scheme that supports user view of memory. A program is a collection of segments. The segment is a logical unit such as:
+\begin{itemize}
+  \item main program \item procedure \item function
+\end{itemize}
+The difference respect the page is that, the page, has a fixed size and it's a memory region. The segmente instead is variable.\\
+\paragraph{Architecture} the logical address consists of two tuple: $<$segmentNumber$, $offset$>$. The segment table maps two-dimensional physical address; each table entry has:
+\begin{itemize}
+  \item \textbf{Base}: Contatins the starting physical address where the segments reside in memory.
+  \item \textbf{Limit}: Specifies the length of the segment.
+\end{itemize}
+There are also other 2 important values:
+\begin{itemize}
+  \item \textbf{STBR} (Segment-Table Base Register): Points to the segment table's location in memory.
+  \item \textbf{STLR} (Segment-Table Length Register): Indicates number of segments used by a program.
+\end{itemize}
+This means that the segment number \textit{s} is legal only if (s$<$STLR).\\
+This solution implements also some protection mechanisms. For each entry in the segment table is asociated a:
+\begin{itemize}
+  \item Validation bit = 0 (illegal segment)
+  \item read\/write\/execute privileges
+\end{itemize}
+Protection bits is associated with segments, code sharing occcurs at segment level. Since segments vary in length, memory allocation is a dynamic storage-allocation problem.
 
 
 
