@@ -16,12 +16,7 @@
 \usepackage{float}
 \usepackage{amssymb}
 \usepackage{ifsym}
-%multi-column
-\multicolumn{number cols}{align}{text} % align: l,c,r
 
-%multi-row
-\usepackage{multirow}
-\multirow{number rows}{width}{text}
 
 % Misure Documento
 \geometry{ a4paper, total={170mm,257mm},left=35mm, right=35mm, top=35mm, bottom=35mm }
@@ -339,16 +334,164 @@ This means that the segment number \textit{s} is legal only if (s$<$STLR).\\
 This solution implements also some protection mechanisms. For each entry in the segment table is asociated a:
 \begin{itemize}
   \item Validation bit = 0 (illegal segment)
-  \item read\/write\/execute privileges
+  \item read/write/execute privileges
 \end{itemize}
 Protection bits is associated with segments, code sharing occcurs at segment level. Since segments vary in length, memory allocation is a dynamic storage-allocation problem.
 
+\section{Virtual Memory}
+Benefits of VMS, demand paging, page-replacemement and allocation of page frames.
 
+\subsection{Background}
+The \textbf{Virtual Memory} is the separation of user logical memory from physical memory.
+\begin{itemize}
+  \item Only parte of the program needs to be in memory for the execution.
+  \item Logical address space can therefor be much larger than physical address space.
+  \item Allows address spaces to be shared by several processes.
+  \item Allows for more efficent process creation.
+\end{itemize}
+The virtual memory of course offer bettere characteristics than the hardware one. It can be implemented via: \textbf{Demand Paging} and \textbf{Demand Segmentation}.
 
+\subsection{Demand Paging}
+This solution bring page into memory only when it is needed. This implies a lot of benefit. Less I/O, less memory needed, faster response, more users.\\
+When a page is needed the reference to it is computed, if the reference is invalid $\Rightarrow$ abort, if the page isn't in memory $\Rightarrow$ bring to memory. The main idea is to implement a \textbf{Lazy swapper} that never swap page into memory unlesse page will be needed, the swapper is also called \textbf{pager}.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/swapping.png}
+  \caption{Swapping of memory}
+  \label{fig:swapping}
+\end{figure}
 
+\paragraph{Valid-Invalid Bit} with each page table entry a valid-invalid bit is accociated, it means that \textbf{Valid = In Memory}, \textbf{Invalid = Not in Memory}.
 
+\subsection{Page Fault}
+If there is a reference to a page, and if that page is not already in memory, first reference to that page will trap to operating system: Page Fault. The flow is the following:
+\begin{enumerate}
+  \item OS look to anothe rtable to decide:
+  \begin{itemize}
+    \item Invalid reference = abort
+    \item Just not in Memory = continue
+  \end{itemize}
+  \item Get empty frame
+  \item Swap page into frames
+  \item Reset tables
+  \item Set validation bit = V
+  \item Restart the instruction that caused the page fault
+\end{enumerate}
 
+\subsection{Process creation}
+The use of virtual memory allows other benefits during process creation:
+\paragraph{Copy-on-write} it allows both parent and child process to initially share the same pages in memory. If eother process modifies a shared page, only then is the page copied. This solution allows more efficient process creation as only modified pages are copied. Free pages are allocated from a pool of zerod-out pages. If there is not free frame page replacement is performed.\\
+\paragraph{Page Replacement} prevent over-allocation of memory by modifing page-fault service routine to include page replacement. Use modify (dirty) bit to reduce overhead of page transfers - only modified pages are written to disk.
+Page replacemente completes separation between logical memory and physical memory - large virtual memory can be provided on a smaller physical memory. The basic flow of page replacement is the following:
+\begin{itemize}
+  \item Find location of the desired page on disk
+  \item Find a free frame:
+  \begin{itemize}
+    \item If there is a free frame = Use it
+    \item If there is not a free frame = Use page replacement to select victim
+  \end{itemize}
+  \item Bring the desired page into the new free frame, update the page and frames table
+  \item Restart process
+\end{itemize}
+There are several algorithms that can be used in order to perform page replacement:
+\begin{itemize}
+  \item \textbf{FIFO}: The oldest page is the first replaced.
+  \item \textbf{LRU}: Replace the page that will not be used for the longest period of time.
+  \item \textbf{LFU}: Replace page with the smallest count of usage.
+  \item \textbf{MFU}: The page with the smallest count is just be brought in and has yet to be used.
+\end{itemize}
 
+\subsection{Memory-mapped files}
+Memory-mapped file I\/O allows file I\/O to be trated as routine memory access by mapping a disk block to a page in memory. A file is initially read using demand paging. A page-sized portion of the file is read from the file system into a physical page. Subsequent reads\/write to\/from the file are treated as ordinary memory accesses. This allows a simplified acces through memory rather than read() of write() operations. It can be also used to shared file among different processes.
+
+\subsection{Kernel Memory}
+Treated differently from user memory. Often allocated from a free-memory pool:
+\begin{itemize}
+  \item Kernel requests memory for structures of varying sizes.
+  \item Some kernel memory needs to be contiguous.
+\end{itemize}
+\paragraph{Buddy system} allocates memory from fixed-size segement consisting of physically-contiguous pages. The memory is allocated using \textbf{power-of-2 allocator}.
+\paragraph{Slab Allocator} it alternate strategy, slab is one or more physically contiguos pages. Cache consists of one or more slabs. Single cache for each unique kernel data structure.
+% END OF CHAPTER 9 - mm2-ch9.pdf
+% STARTING IO.pdf
+\section{I\/O}
+This chapter will speak about Unix kernel architecture, file system data structure, etc...
+
+\subsection{Kernel}
+The kernel architecture is represented in figure \ref{fig:unixkernel}.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/unixkernel.png}
+  \caption{UNIX Kernel architecture}
+  \label{fig:unixkernel}
+\end{figure}
+Is divided in 3 levels:
+\begin{enumerate}
+  \item Hardware
+  \item Kernel
+  \item User
+\end{enumerate}
+
+\subsection{Terminal Driver}
+Include one or more line discipline modules, which interpret the input chars and format the output lines. Every disciplined line may operate in two modes:
+\begin{itemize}
+  \item \textbf{Raw mode}: The line discipline transfers data between a terminal and a process without any conversion.
+  \item \textbf{Canonical mode}: The user input is converted for the receiving process. The process output is converted for the user.
+\end{itemize}
+
+\subsection{Buffer cache}
+When the kernel is asked to serve a read request from disk it tries to read the data from the buffer cache. If the data are in the cache, they will returned to the user process without any disk access. Otherwise, the kernel, reads a block of data from disk and stores it in the buffer cache, trying to keep it in memory as long as possible, for a possible future usage.\\
+When the kernel is asked to server a write request to disk, it puts the data in the buffer cache:
+\begin{itemize}
+  \item Data stay in memory for possible read operations.
+  \item Addition or change of the data are performed in memory rather than disk.
+\end{itemize}
+The goal of the buffer cache is trying to minimize the number of disk accesses:
+\begin{itemize}
+  \item By reading ahead the data that, according to the space and temporal locality of the process references, have high probability to be referenced in the near future.
+  \item By delaying as much as possible the transfer of the contente of the buffer cache to disk ()\textbf{dealyed write}.)
+\end{itemize}
+
+\section{Booting a PC}
+The booting process is not easy. The first PCs, were based on the 16-bit Intel 8088 processor that were only capable of addressing 1MB of physical memory. The physycal address space of an early PC would therefore start at 0x00000000 but end at 0x000FFFFF instead of 0xFFFFFFFF. The 640KB are marked "low memory" was the only RAM that an early PC could use. Figure \ref{fig:memory8088}.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\linewidth]{images/memory8088.png}
+  \caption{Memory view of 8088 processor}
+  \label{fig:memory8088}
+\end{figure}
+The 348KB area from 0x000A0000 through 0x000FFFFF was reserved by the hardware for special uses such as video display buffers and firmware held in nonvolatile memory. The most important part of this reserved are is the basic Input\/Output System (BIOS), which occupies 64KB.
+
+\subsection{BIOS}
+More BIOS is located at the high end of the 32-bit address range for user by 32bit PCI devices. The BIOS is responsible for performing Power-On-Self-Test and basic system initialization such as activating the video card and checking the amount of memory installed. After performing this initialization, the BIOS loads the OS from some appropriate location such as floppy disk, HDD, CD-ROM or Network and passes control of the machine to the OS.
+
+\subsection{ROM BIOS}
+The 486 and later processors start executing at physycal address 0xFFFFFFF0, which is at the very top of the memory space, in an are reserved for the ROM BIOS. The first instruction is:
+\begin{itemize}
+  \item [] JMP FAR f000:e05b
+\end{itemize}
+This instruction jumps to the normal BIOS, which is located in the 64KB region from 0xF0000 to 0xFFFFF mentioned above.
+The CPU start in real mode, so the \textit{JMP FAR} instriction is a real mode jump that restoers us to low memory. In real mode, the segmented address segment:offset translates to the physical address segment*16+offset. Thus, f00:e05b traslates to 0x000fe05b.\\
+No GDT, LDT or paging table is needed by the CPU in real mode. The code that initializes these data structures must run in real mode. When the BIOS runs:
+\begin{itemize}
+  \item It initializes the PCI bus and all the important devices it knows about (in particular VGA display).
+  \item Then it searches for a bootable devices such as a floppy, HDD, etc...
+  \item When it finds a bootable disk, it reads the boot loader from the disk and transfers control to it.
+\end{itemize}
+
+\subsection{BOOT Loader}
+Is the program run by the BISO to load the image of a kernle into RAM. Floppy and companies for PCs are, by historical convention, divided up into 512 byte regions called sectors. If the disk is bootable, the first sector is called boot sector, since this is where the boot loader code resides. When the BIOS finds a bootable floppy or HDD, it loads the 512 byte boot sector into low memory, at physical addresses: 0x7C00 through 0x7DFF. Then uses a JMP instruction to set the CS:IP to 0000:7C00, passing control to the boot loader.
+\paragraph{Files} The boot loader user three main files:
+\begin{itemize}
+  \item \textit{\textbf{boot.s}}: First the boot loader switches the processor from real mode to 32-bit protected mode, because is the only mode that software can access all the memory above 1MB inh physical address space.
+  \item \textit{\textbf{main.c}}: Second, the boot loader reads the kernel from the HDD by directly accessing the IDE disk device registers via the x86's special I\/O instructions.
+  \item \textit{\textbf{boot.asm}}: This file is a disassembly of the boot loader. It is easy to see exactly where in physical memory all of the boot loader's code resides.
+\end{itemize}
+\paragraph{Passing control to Kernel} The boot loader's link and load addresses match perfectly. There is a rather large disparty between the kernel's link and the load addresses. Operating system kernels often like to be linked and run at very high virtual address in order to leave the lower part of the processor virtual address space for user programs to use.
+
+\subsection{Kernel load address and virtual addresses}
+Since we can't actually load the kernel at physical address 0xf0100000, we will use the processor's memory management hardware to map vistual address to the physical, where the boot loader actually load the kernel.
+% FINISH BOOTING_PC.pdf
 
 
 
