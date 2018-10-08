@@ -493,7 +493,64 @@ Is the program run by the BISO to load the image of a kernle into RAM. Floppy an
 Since we can't actually load the kernel at physical address 0xf0100000, we will use the processor's memory management hardware to map vistual address to the physical, where the boot loader actually load the kernel.
 % FINISH BOOTING_PC.pdf
 
+\subsection{Line Discipline}
+There are 2 types of line discipline:
+\begin{itemize}
+  \item Canonical Mode: THe user input is converted for the receiving process and is converted for the user.
+  \item Raw Mode: Transfer data between a terminal and a process without any conversion.
+\end{itemize}
+The canonical mode prints lines of char received from processes or given by the user. It able to manage formatting chars like tab or enter. In the raw mode the enter has no specific meaning, the behaviour of this mode can be set using the ioctl()
 
+\subsection{Login}
+The init process reads /etc/inittab and executes a getty process for each know terminal that has benn "switched on". getty calls the system call open() realted to the terminal, which makes the process wait that the "hardware" connection has been established. Getty, through call exec(), become the login process. The login proces execs the user selected shell reading the last field of the username from /etc/passwd.
+
+\subsection{Buffer Cache}
+When the kernal is asked to serve a write request to disk, it puts the data in the buffer cache.
+\begin{itemize}
+  \item The data stay in memory for possible read operations.
+  \item Addition or change of the data are performed in memory rather than on disk.
+\end{itemize}
+The buffer cache management try to minimize the number of disk accesses:
+\begin{itemize}
+  \item By reading ahead the data that, according to space and temporal locality of the process references, have high probability to be referenced in the near future.
+  \item By delaying as much as possible the transfer of the content of the buffer cache to disk (delayed write).
+\end{itemize}
+
+\section{File System}
+The file system is how data is organized on disk.
+\subsection{File Descriptor}
+Is important for the structure of the entire disk, it descript files:
+\begin{itemize}
+  \item File type
+  \item Filesystem type
+  \item Volume
+  \item Starting address
+  \item Size
+  \item Owner
+  \item Access rights
+  \item Use information (when/who modifies, create, etc...)
+\end{itemize}
+
+\subsection{Different allocations}
+The \textbf{Contigous allocation} have the advantage of access speed, the problem is the fragmentation of the available space. The \textbf{Linked allocation} allows not contigous block, it also wasted 4byte fot the next addresses. But the main problem is that missing one link it mean missing all file. The \textbf{File Allocation Table (FAT)} used by DOS is a variation of linked allocation, where all the links are stored in a separate table at the beginning of the disk. The beneﬁt of this approach is that the FAT table can be cached in memory, greatly improving random access speeds. The \textbf{Indexed allocation} the descriptor point to an iNode that contains all the pointer to the different blocks.\\
+The \textbf{UNIX} file system is structured in a different way: The fist block is the boot block,it contains the bootstrap code that is loaded and executed at system power on. The superblock describes the FS state:
+\begin{itemize}
+  \item Size
+  \item Max num of files
+  \item Maps of free inodes and data blocks
+  \item Other info
+\end{itemize}
+The inode (index-node) has a lot of informations:
+\begin{itemize}
+  \item owner
+  \item File type: regual, directory, special, etcc...
+  \item Access rights and time
+  \item Link number: Number of link correlated to that iNode.
+  \item File size
+  \item Table of the data block addresses on disk
+\end{itemize}
+Using the open() system call, also the iget is called. It locks the inode, allocates in memory a copy of the inode describing a file and it returns an unlocked inode with reference count incremented by one. The inode structure is able to manage up to 16GB files.\\
+The sys call close() locks the inode, decrement the reference conunt by one, if it becomes 0 it write the inode on disk, release to the inode free list the memory copy of the inode. If the link count is 0, the kernel release all the data blocks of the file and its disk inode. Most of the time deleting a file means only to remove the inode, this for speed reasons.
 
 
 
